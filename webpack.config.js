@@ -7,12 +7,11 @@ const __dirname = path.dirname(__filename);
 export default {
     devtool: 'source-map',
     entry: {
-        main: './logic/main.js',
+        game: './logic/game/main.js',
     },
     output: {
-        filename: '[name].bundle.js',
-        path: path.resolve(__dirname, 'logic/dist'),
-        publicPath: '/logic/dist/',
+        filename: '[name].js',
+        path: path.resolve(__dirname, 'logic/'),
     },
     mode: 'production',
     watch: true,

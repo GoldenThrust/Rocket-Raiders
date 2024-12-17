@@ -1,6 +1,6 @@
 import Particles from "./particles/particles.js";
 import { player } from "./player/currentPlayer.js";
-import { distanceBetween, drawLive, getRandomInt } from "./utils/utils.js";
+import { distanceBetween, drawLive, getRandomInt } from "./utils/function.js";
 import { ctx, canvas } from "./utils/constant.js"
 import socket from "./websocket.js";
 // window.addEventListener('click', () => {
@@ -45,7 +45,6 @@ function renderParticles() {
         }
     });
 }
-let i = 0;
 
 function main(t) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -71,7 +70,7 @@ function main(t) {
 
     ctx.restore();
  
-    drawLive()
+    drawLive(player)
 
     requestAnimationFrame(main);
 }

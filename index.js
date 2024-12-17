@@ -31,12 +31,16 @@ app.use(cors());
 
 app.use(cookieParser());
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use('/logic', express.static(path.join(__dirname, "logic")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+app.use('/logic', express.static(path.join(__dirname, "logic")));
+
+app.use('/', express.static(path.join(__dirname, "views")));
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -52,7 +56,7 @@ server.listen(PORT, () => {
   mongodb.run().catch(console.dir);
 
   const io = new Server(server, {
-    adapter: createAdapter(redis.client, redis.subClient)
+    adapter: createAdapter(redis.client)
   });
 
   websocket.getConnection(io);

@@ -1,11 +1,10 @@
 import { ctx, maxDistance, userName } from "../utils/constant.js";
 import { cp } from "../main.js";
-import { checkCollision, damageAnimation, debug } from "../utils/utils.js";
+import { checkCollision, damageAnimation } from "../utils/function.js";
 import socket from "../websocket.js";
 import Player, { playerSpawnLocation } from "./player.js";
 import { weapons } from "./weapons/utils.js";
 
-const deb = debug();
 
 export default class User extends Player {
     constructor(username, x, y, ctx) {

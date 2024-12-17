@@ -1,4 +1,4 @@
-import { randomColor } from "../utils/utils.js";
+import { randomColor } from "../utils/function.js";
 
 export default class Particles {
     constructor(x, y, ctx) {

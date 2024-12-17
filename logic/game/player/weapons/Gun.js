@@ -1,5 +1,5 @@
 import Weapon from "./weapon.js";
-import { distanceBetween } from "../../utils/utils.js";
+import { distanceBetween } from "../../utils/function.js";
 import { player } from "../currentPlayer.js";
 
 export default class Gun extends Weapon {

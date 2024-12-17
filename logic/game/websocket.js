@@ -4,7 +4,7 @@ import CPlayer from "./player/connectedPlayers.js";
 import { player } from "./player/currentPlayer.js";
 import { weapons } from "./player/weapons/utils.js";
 import { cp } from "./main.js";
-import { damageAnimation } from "./utils/utils.js";
+import { damageAnimation } from "./utils/function.js";
 
 const socket = io("/", {
     withCredentials: true,

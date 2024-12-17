@@ -1,5 +1,5 @@
 import SpriteAnimation from "../utils/spriteAnimation.js";
-import { drawSpriteFrame, getFrameDuration, getRandomInt, } from "../utils/utils.js";
+import { drawSpriteFrame, getFrameDuration, getRandomInt, } from "../utils/function.js";
 import imgData from "./playerImg.js";
 
 export const playerSpawnLocation = () => [getRandomInt(-100, 100), getRandomInt(-100, 100)];
@@ -119,7 +119,6 @@ export default class Player {
             }
         });
 
-        // Close the shape
         this.ctx.lineTo(vertices[0].x, vertices[0].y);
         this.ctx.fill();
 

@@ -1,4 +1,4 @@
-import { getRandomCharacters } from "./utils.js";
+import { getRandomCharacters } from "./function.js";
 
 export const maxDistance = 10000;
 

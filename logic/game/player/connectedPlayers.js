@@ -1,8 +1,5 @@
-import { debug, lerp } from "../utils/utils.js";
+import { lerp } from "../utils/function.js";
 import Player from "./player.js";
-import imgData from "./playerImg.js";
-
-const deb = debug();
 
 export default class CPlayer extends Player {
     constructor(username, x, y, ctx) {
@@ -26,8 +23,6 @@ export default class CPlayer extends Player {
         this.py = y;
         this.angle = lerp(this.pangle, angle, t);
         this.pangle = angle;
-
-        deb.innerText = `Oplayer: ${this.x} - ${this.px} ${this.y} - ${this.py}`;
 
         
 

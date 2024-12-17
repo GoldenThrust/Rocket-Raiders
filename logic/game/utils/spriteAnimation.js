@@ -1,4 +1,4 @@
-import { drawSpriteFrame, getFrameDuration } from "./utils.js";
+import { drawSpriteFrame, getFrameDuration } from "./function.js";
 
 export default class SpriteAnimation {
     constructor(spritesheet, x, y, cutWidth, cutHeight, scaleWidth, scaleHeight, numberOfRows, numberOfColumns, fps, maxInterations = 0) {

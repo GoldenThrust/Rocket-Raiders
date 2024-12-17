@@ -1,5 +1,4 @@
 import { ctx } from "./constant.js";
-import { player } from "../player/currentPlayer.js";
 
 
 export function getRandomInt(min, max) {
@@ -7,6 +6,18 @@ export function getRandomInt(min, max) {
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
 }
+
+export function getRandomNZeroInt(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  let random = Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled)
+  if (random === 0) {
+    random = min;
+  }
+
+  return random;
+}
+
 
 export function distanceBetween(obj, obj2) {
   return [Math.sqrt((obj.x - obj2.x) ** 2 + (obj.y - obj2.y) ** 2), (obj.x - obj2.x), (obj.y - obj2.y)];
@@ -99,7 +110,7 @@ export function checkCollision(obj1, obj2) {
   return true;
 }
 
-export function drawLive() {
+export function drawLive(player) {
   player.ctx.save();
   player.ctx.fillStroke = 'springGreen';
   player.ctx.lineWidth = 4;

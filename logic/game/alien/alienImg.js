@@ -1,4 +1,4 @@
-import { randomColor } from "../utils/utils.js";
+import { randomColor } from "../utils/function.js";
 
 export const alien = (color) => `data:image/svg+xml;base64,${btoa(`<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 160.96 215.38">
   <defs>
