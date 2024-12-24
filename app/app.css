@@ -5,6 +5,10 @@
 html,
 body {
   @apply bg-white dark:bg-gray-950;
+  background-image: url("/app/assets/homebg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;

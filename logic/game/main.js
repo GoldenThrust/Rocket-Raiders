@@ -7,7 +7,7 @@ import socket from "./websocket.js";
 //     const audioCtx = new AudioContext();
 // })
 
-const scaleFactor = 1;
+const scaleFactor = 0.5;
 
 export let cp = []
 

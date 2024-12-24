@@ -1,5 +1,6 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import Header from "~/components/ui/home/header";
+import TestUserIMG from "~/assets/test-user.png";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +10,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <div id="home" className="w-screen h-screen">
+    <Header><div><img src={TestUserIMG} alt="" /> </div></Header>
+  </div>;
 }
