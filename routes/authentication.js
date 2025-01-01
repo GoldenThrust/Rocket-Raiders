@@ -1,18 +1,15 @@
 import { Router } from "express";
-import { loginValidator, resetPasswordValidator, signupValidator, validate } from "../middleware/validators.js";
-import authContoller from "../controllers/authenticationController.js";
-import { verifyToken } from "../middleware/tokenManager.js";
-import { upload } from "../utils/constants.js";
+import { loginValidator, resetPasswordValidator, signupValidator, validate } from "../middlewares/validators.js";
+import authController from "../controllers/authenticationController.js";
 const authRoutes = Router();
 
-authRoutes.post('/register', upload.single('image'), validate(signupValidator), authContoller.register)
-authRoutes.post('/login', validate(loginValidator), authContoller.login)
-authRoutes.get('/logout', verifyToken, authContoller.logout)
-authRoutes.get('/verify', verifyToken, authContoller.verify)
-authRoutes.get('/activate/:token', authContoller.activateAccount)
-authRoutes.post('/resend-activate', authContoller.resendActivationEmail)
-authRoutes.post('/forgot-password', authContoller.forgotPassword)
-authRoutes.post('/reset-password/:token', validate(resetPasswordValidator), authContoller.resetPassword)
+authRoutes.get('/verify', authController.verify)
+authRoutes.post('/register', validate(signupValidator), authController.register)
+authRoutes.post('/login', validate(loginValidator), authController.login)
+authRoutes.get('/logout', authController.logout)
+authRoutes.get('/activate/:crypto', authController.activateAccount)
+authRoutes.post('/forgot-password', authController.forgotPassword)
+authRoutes.post('/reset-password/:token', validate(resetPasswordValidator), authController.resetPassword)
 
 
 export default authRoutes;

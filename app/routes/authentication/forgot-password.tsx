@@ -1,42 +1,28 @@
-// route('/projects/:projectId', './project.tsx')
 import FormField from "~/components/ui/authentication/Form";
-import type { Route } from "./+types/register";
+import type { Route } from "./+types/login";
 import { ChevronsLeft } from "lucide-react";
 import { Link } from "react-router";
-import axios from "axios";
 import { useAuth } from "~/hooks/auth";
+import axios from "axios";
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData.entries());
   try {
-    const response = await axios.post("/auth/register", data);
+    const response = await axios.post("/auth//forgot-password", data);
     return response.data;
   } catch (error: any) {
     return error?.response?.data;
   }
 }
 
-export default function Register({ actionData }: Route.ComponentProps) {
-  useAuth()
-
+export default function ForgotPassWord({ actionData }: Route.ComponentProps) {
+  useAuth();
   const formData = [
     {
       type: "text",
       name: "username",
       value: actionData?.username || "",
-      placeholder: "Username",
-    },
-    {
-      type: "email",
-      name: "email",
-      value: actionData?.email || "",
-      placeholder: "Email",
-    },
-    {
-      type: "password",
-      name: "password",
-      value: actionData?.password || "",
-      placeholder: "Password",
+      placeholder: "Username or Email",
     },
   ];
 
@@ -44,20 +30,20 @@ export default function Register({ actionData }: Route.ComponentProps) {
     <>
       <nav>
         <Link
-          to={"../login"}
+          to={"../register"}
           className="flex items-center absolute top-2 left-2"
         >
           <ChevronsLeft />
-          Sign In
+          Sign Up
         </Link>
       </nav>
       <div>
-        <FormField formData={formData} value="Register" />
+        <FormField formData={formData} value="Send Reset Link" />
 
         {actionData ? (
           actionData.status === "OK" ? (
             <p className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-black text-center text-lg font-semibold">
-              An activation link has been sent to your email. Please check your
+              A Reset Password link has been sent to your email. Please check your
               inbox (and spam folder) to complete your account setup. The link
               will expire in 24 hours.
             </p>

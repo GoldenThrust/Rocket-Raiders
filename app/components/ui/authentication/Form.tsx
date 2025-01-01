@@ -11,15 +11,14 @@ export default function FormField({formData, value }: { formData: Array<FormData
         defaultValue={data.value}
         placeholder={data.placeholder}
         required
-        className="block w-1/2 lg:w-1/3 m-auto h-10 border-white border-2 rounded-md p-3"
+        className="block w-1/2 lg:w-1/3 m-auto h-10 bg-slate-700 bg-opacity-65 border-white border-2 rounded-md p-3"
       />
     ))}
     <button
       type="submit"
-      className="block w-1/2 lg:w-1/3 m-auto h-10 border-sky-950 bg-gray-900 border-2 rounded-md"
-      value={value}
+      className="block w-1/2 lg:w-1/3 m-auto font-semibold h-10 border-sky-950 bg-gray-900 border-2 rounded-md"
     >
-      Submit
+      {value}
     </button>
   </Form>
 }

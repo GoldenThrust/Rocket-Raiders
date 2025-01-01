@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import mongoose from "mongoose";
-import { mongoDBURI, redisOptions } from "../utils/constant.js";
+import { mongoDBURI, redisOptions } from "../utils/constants.js";
 
 class Redis {
   constructor() {
@@ -26,6 +26,10 @@ class Redis {
 
   get(key) {
     return this.client.get(key);
+  }
+
+  del(key) {
+    return this.client.DEL(key);
   }
 }
 
