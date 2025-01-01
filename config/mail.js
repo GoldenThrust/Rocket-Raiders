@@ -75,6 +75,7 @@ class MailService {
 
     async sendResetPasswordEmail(user, crypto) {
         const resetPasswordLink = `${this.hostUrl}/auth/reset-password/${crypto}/`;
+        const imgLink = `${this.hostUrl}/logo.svg`;
 
         const mailTemplate = `
                             <body>
@@ -90,7 +91,7 @@ class MailService {
                                         We received a request to reset your password. Click the button below to reset your password.
                                     </p>
                                     <p style="text-align: center;">
-                                        <a href="${verificationLink}"
+                                        <a href="${resetPasswordLink}"
                                             style="background-color: #814caf; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                                             Reset Password
                                         </a>

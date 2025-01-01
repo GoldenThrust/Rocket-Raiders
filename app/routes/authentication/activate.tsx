@@ -1,7 +1,6 @@
 import axios, { type CancelTokenSource } from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { isAuthenticated } from "~/redux/authenticationSlice";
 
 export default function Activate() {
   const { crypto } = useParams();

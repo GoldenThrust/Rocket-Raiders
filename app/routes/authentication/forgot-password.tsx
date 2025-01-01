@@ -1,5 +1,5 @@
 import FormField from "~/components/ui/authentication/Form";
-import type { Route } from "./+types/login";
+import type { Route } from "./+types/forgot-password";
 import { ChevronsLeft } from "lucide-react";
 import { Link } from "react-router";
 import { useAuth } from "~/hooks/auth";

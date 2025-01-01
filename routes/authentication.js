@@ -9,7 +9,7 @@ authRoutes.post('/login', validate(loginValidator), authController.login)
 authRoutes.get('/logout', authController.logout)
 authRoutes.get('/activate/:crypto', authController.activateAccount)
 authRoutes.post('/forgot-password', authController.forgotPassword)
-authRoutes.post('/reset-password/:token', validate(resetPasswordValidator), authController.resetPassword)
+authRoutes.post('/reset-password/:crypto', validate(resetPasswordValidator), authController.resetPassword)
 
 
 export default authRoutes;

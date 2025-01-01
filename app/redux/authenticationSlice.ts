@@ -14,7 +14,7 @@ export const authSlice = createSlice({
     setAuthenticationState: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
-    setUserData: (state, action: PayloadAction<User>) => {
+    setUserData: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
     },
   },

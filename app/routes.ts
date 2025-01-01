@@ -28,7 +28,7 @@ export default [
     route("forgot-password", "./routes/authentication/forgot-password.tsx"),
     route("activate/:crypto", "./routes/authentication/activate.tsx"),
     route(
-      "reset-password/:token",
+      "reset-password/:crypto",
       "./routes/authentication/reset-password.tsx"
     ),
   ]),

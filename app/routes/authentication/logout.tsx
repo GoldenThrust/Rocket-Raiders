@@ -1,18 +1,23 @@
 import axios, { type CancelTokenSource } from "axios";
 import { useEffect } from "react";
-import { Navigate } from "react-router";
-import { setAuthenticationState } from "~/redux/authenticationSlice";
+import { useDispatch } from "react-redux";
+import { Navigate, useNavigate } from "react-router";
+import { useNotAuth } from "~/hooks/auth";
+import {
+  setAuthenticationState,
+  setUserData,
+} from "~/redux/authenticationSlice";
 
 export default function Logout() {
-  const source: CancelTokenSource = axios.CancelToken.source();
-
+  useNotAuth();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   useEffect(() => {
     const logout = async (): Promise<void> => {
       try {
-        await axios.get(`/auth/logout`, {
-          cancelToken: source.token, // Attach cancel token to the request
-        });
-        setAuthenticationState(false);
+        await axios.get(`/auth/logout`);
+        dispatch(setAuthenticationState(false));
+        navigate("/auth/login", { replace: true });
       } catch (error: any) {
         if (axios.isCancel(error)) {
           console.warn("Logout request canceled.");
@@ -23,12 +28,8 @@ export default function Logout() {
     };
 
     logout();
-
-    return () => source.cancel();
   }, []);
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Navigate to={"/auth/login"} replace={true} />
-    </div>
+    <div className="flex justify-center items-center h-screen">Logout</div>
   );
 }

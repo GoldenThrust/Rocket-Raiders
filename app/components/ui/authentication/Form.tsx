@@ -10,6 +10,7 @@ export default function FormField({formData, value }: { formData: Array<FormData
         name={data.name}
         defaultValue={data.value}
         placeholder={data.placeholder}
+        ref={data.ref}
         required
         className="block w-1/2 lg:w-1/3 m-auto h-10 bg-slate-700 bg-opacity-65 border-white border-2 rounded-md p-3"
       />

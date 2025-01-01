@@ -233,12 +233,15 @@ class AuthenticationController {
             }
 
             try {
-                await mail.sendResetPasswordEmail(user);
+                const activationToken = uuid();
+                await redis.set(`reset_password_${activationToken}`, user.email, 24 * 60 * 60);
+
+                await mail.sendResetPasswordEmail(user, activationToken);
             } catch (error) {
-                res.status(500).json({ status: "ERROR", message: "Failed to send password link" });
+                return res.status(500).json({ status: "ERROR", message: "Failed to send password link" });
             }
 
-            res.json({ status: "OK", message: "Please check your email for your password reset link" });
+            return res.json({ status: "OK", message: "Please check your email for your password reset link" });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });
@@ -247,12 +250,10 @@ class AuthenticationController {
     }
 
     async resetPassword(req, res) {
-
         try {
             const { password } = req.body;
-            const token = req.params.token;
-            const email = await redis.get(token);
-            console.log(token, email);
+            const activationToken = req.params.crypto;
+            const email = await redis.get(`reset_password_${activationToken}`);
             if (!email) {
                 return res.status(401).json({ status: "ERROR", message: "Invalid or expired token" });
             }
@@ -264,8 +265,8 @@ class AuthenticationController {
                 { new: true }
             );
 
-            await redis.del(token);
-            res.status(201).json({ status: "OK", message: "Password reset successfully" })
+            await redis.del(`reset_password_${activationToken}`);
+            res.status(201).json({ status: "OK", message: "Your password has been updated successfully"  })
         } catch (error) {
             console.error(error);
             return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });

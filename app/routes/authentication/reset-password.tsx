@@ -10,7 +10,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = Object.fromEntries(formData.entries());
   const crypto = data.crypto;
 
-  if (data["c-password"] !== "password") {
+  if (data["c-password"] !== data["password"]) {
     return {
       status: "Error",
       message: "Password do not match",
@@ -21,6 +21,10 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     const response = await axios.post(`/auth/reset-password/${crypto}`, {
       password: data.password,
     });
+
+    setTimeout(()=> {
+      window.location.href = "/auth/login";
+    }, 2000)
     return response.data;
   } catch (error: any) {
     return error?.response?.data;
@@ -65,6 +69,18 @@ export default function Login({ actionData }: Route.ComponentProps) {
       </nav>
       <div>
         <FormField formData={formData} value="Reset Password" />
+
+        {actionData ? (
+          actionData.status === "OK" ? (
+            <p className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-black text-center text-lg font-semibold">
+              {actionData.message}. Redirecting in 2 seconds.
+            </p>
+          ) : (
+            <p className="flex justify-center items-center text-red-500">
+              {actionData.message}
+            </p>
+          )
+        ) : null}
       </div>
     </>
   );

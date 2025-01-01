@@ -90,7 +90,7 @@ function Wrapper() {
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
 
-    const verifyAuth= async (): Promise<void>  => {
+    const verifyAuth = async (): Promise<void> => {
       try {
         if (!isAuthenticated) {
           const response = await axios.get("/auth/verify", {

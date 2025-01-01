@@ -10,6 +10,8 @@ export function useAuth() {
         if (isAuthenticated) {
             navigate('/', { replace: true });
         }
+
+        console.log(isAuthenticated, 'Authenticated')
     }, [isAuthenticated, navigate])
 }
 
