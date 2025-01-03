@@ -11,16 +11,16 @@ import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
 import { useEffect } from "react";
 import axios, { type CancelTokenSource } from "axios";
-import { baseUrl } from "./utils/constants";
+import { hostUrl } from "./utils/constants";
 
 import { Provider, useDispatch, useSelector } from "react-redux";
-import store from "./store";
+import store, { type RootState } from "./store";
 import {
   setAuthenticationState,
   setUserData,
 } from "./redux/authenticationSlice";
 
-axios.defaults.baseURL = `${baseUrl}/api`;
+axios.defaults.baseURL = `${hostUrl}/api`;
 axios.defaults.withCredentials = true;
 
 export const links: Route.LinksFunction = () => [
@@ -38,20 +38,27 @@ export const links: Route.LinksFunction = () => [
 ];
 
 function setFullScreen() {
-  document.documentElement.requestFullscreen().then((response) => {
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation
-        .lock("landscape")
-        .then(() => {
-          console.log("Switched to landscape orientation.");
-        })
-        .catch((error: Error) => {
-          console.error("Orientation lock failed:", error);
-        });
-    } else {
-      alert("Screen Orientation API is not supported on this browser.");
-    }
-  });
+  if (document.fullscreenElement === null) {
+    document.documentElement.requestFullscreen().then((response) => {
+      if (screen.orientation && screen.orientation.lock) {
+        if (
+          ["portrait", "portrait-primary"].includes(screen.orientation.type)
+        ) {
+          console.log(screen.orientation.type);
+          screen.orientation
+            .lock("landscape")
+            .then(() => {
+              console.log("Switched to landscape orientation.");
+            })
+            .catch((error: Error) => {
+              console.error("Orientation lock failed:", error);
+            });
+        }
+      } else {
+        alert("Screen Orientation API is not supported on this browser.");
+      }
+    });
+  }
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -85,7 +92,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function Wrapper() {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
@@ -94,11 +101,11 @@ function Wrapper() {
       try {
         if (!isAuthenticated) {
           const response = await axios.get("/auth/verify", {
-            cancelToken: source.token, // Attach cancel token to the request
+            cancelToken: source.token,
           });
           if (response.status === 200) {
             dispatch(setAuthenticationState(true));
-            dispatch(setUserData(response.data?.message));
+            dispatch(setUserData(response.data?.response));
             console.log("User is authenticated");
           } else {
             dispatch(setAuthenticationState(false));

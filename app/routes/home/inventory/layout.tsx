@@ -5,6 +5,15 @@ import Header from "~/components/ui/home/header";
 import Gun from "~/assets/gun.svg";
 import Rocket from "~/assets/rocket.svg";
 import Merc from "~/assets/merc.svg";
+import type { Route } from "./+types/layout";
+
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Rocket Raider: Inventories" },
+    { name: "description", content: "Welcome to React Router!" },
+  ];
+}
 
 export default function InventoryLayout() {
   return (

@@ -8,9 +8,9 @@ import { damageAnimation } from "./utils/function.js";
 
 const socket = io("/", {
     withCredentials: true,
-    query: {
-        username: userName
-    },
+    // query: {
+    //     username: userName
+    // },
 })
 
 

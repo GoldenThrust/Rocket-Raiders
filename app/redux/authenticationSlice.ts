@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "../../app/store";
 import type { User, UserState } from "~/types/user";
+import { hostUrl } from "~/utils/constants";
 
 const initialState: UserState = {
   user: null,
@@ -14,15 +14,14 @@ export const authSlice = createSlice({
     setAuthenticationState: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
-    setUserData: (state, action: PayloadAction<User | null>) => {
+    setUserData: (state, action: PayloadAction<any | null>) => {
+      const user = action.payload;
+      user.avatar = `${hostUrl}/${user.avatar}`;
       state.user = action.payload;
     },
   },
 });
 
 export const { setAuthenticationState, setUserData } = authSlice.actions;
-
-export const user = (state: RootState) => state.auth.user;
-export const isAuthenticated = (state: RootState) => state.auth.isAuthenticated;
 
 export default authSlice.reducer;

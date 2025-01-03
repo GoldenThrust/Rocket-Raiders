@@ -5,17 +5,38 @@
 html,
 body {
   @apply bg-white dark:bg-gray-950;
-  background-image: url("/app/assets/homebg.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   height: 100svh;
   user-select: none;
   color: white;
+  background: transparent;
   /* overflow: hidden; */
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
+  }
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/app/assets/homebg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+  animation: homeBg 1s ease-in-out infinite linear;
+}
+
+@keyframes homeBg {
+  0% {
+    filter: brightness(100);
+  }
+  100% {
+    filter: brightness(10);
   }
 }
 
@@ -24,7 +45,6 @@ video {
   width: 100%;
   height: 100%;
 }
-
 
 ::-webkit-scrollbar {
   width: 0;

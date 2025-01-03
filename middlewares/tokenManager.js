@@ -35,3 +35,37 @@ export async function verifyToken(req, res, next) {
     return res.status(401).json({ response: "Token Expired or Invalid" });
   }
 }
+
+export function verifyAdminToken(req, res, next) {
+  try {
+    const token = req.signedCookies[`${COOKIE_NAME}_admin`];
+
+    if (!token) {
+      return res.status(401).json({
+        status: "ERROR",
+        message: "Authentication token is missing",
+      });
+    }
+
+    const jwtSecret = process.env.JWT_SECRET;
+
+    const jwtData = jwt.verify(token, jwtSecret);
+
+    if (!jwtData) {
+      return res.status(401).json({
+        status: "ERROR",
+        message: "Invalid or expired authentication token",
+      });
+    }
+
+    req.admin = jwtData;
+
+    next();
+  } catch (error) {
+    console.error("Token verification error:", error.message);
+    return res.status(401).json({
+      status: "ERROR",
+      message: "Invalid or expired authentication token",
+    });
+  }
+}

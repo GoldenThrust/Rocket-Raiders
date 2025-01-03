@@ -1,3 +1,4 @@
+import multer from "multer";
 import os from "os";
 
 export function getIPAddress() {
@@ -10,4 +11,9 @@ export function getIPAddress() {
         }
     }
     return 'IP address not found';
+}
+
+
+export default function upload(path) {
+    return multer({ dest: `assets/imgs/uploads/${path}` });
 }

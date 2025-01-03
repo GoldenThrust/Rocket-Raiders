@@ -1,4 +1,4 @@
-import { redis } from "./db.js";
+// import { redis } from "./db.js";
 
 class WebSocket {
     constructor() {
@@ -15,23 +15,24 @@ class WebSocket {
             io.on("connection", async (socket) => {
                 this.socket = socket;
 
-                try {
-                    await redis.set(`${socket.id}`, `${socket.handshake.query.username}`, 64000)
-                } catch (err) {
-                    console.error(err);
-                }
+                // try {
+                //     await redis.set(`${socket.id}`, `${socket.handshake.query.username}`, 64000)
+                // } catch (err) {
+                //     console.error(err);
+                // }
 
+                // game socket
                 socket.on('connected', (player) => {
                     socket.broadcast.emit('userConnected', player, socket.id);
                 })
 
                 socket.on('returnConnection', (player, id) => {
-                    console.log(`${socket.handshake.query.username} returing connection to ${player.username} ${id}`);
+                    // console.log(`${socket.handshake.query.username} returing connection to ${player.username} ${id}`);
                     socket.to(id).emit('receivedConnection', player);
                 })
 
                 socket.on("disconnect", () => {
-                    socket.broadcast.emit('userDisconnected', socket.handshake.query.username);
+                    // socket.broadcast.emit('userDisconnected', socket.handshake.query.username);
                 });
 
                 socket.on('onmotion', (player) => {
@@ -45,6 +46,11 @@ class WebSocket {
                 socket.on('weaponHit', (shooter, shootee, gunIndex) => {
                     socket.broadcast.emit('weaponHit', shooter, shootee, gunIndex);
                 });
+
+                // Home Socket
+                socket.on('initiateGame', (match) => {
+                    socket.broadcast.emit('newMatches', match);
+                })
 
                 socket.on('destroy', (shooter, shootee) => {
                     socket.broadcast.emit('destroy', shooter, shootee)

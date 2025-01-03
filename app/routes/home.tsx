@@ -1,121 +1,92 @@
-import type { Route } from "./routes/+types/home";
 import Header from "~/components/ui/home/header";
 import TestUserIMG from "~/assets/test-user.png";
-import { Link } from "react-router";
-import { useState } from "react";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Rocket Raider" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "~/store";
+import freeforallMap from "~/assets/map/freeforall.png";
+import teamdeathmatchMap from "~/assets/map/teamdeathmatch.png";
+import {
+  convertCamelToTitleCase,
+  convertDashToCamelCase,
+  convertTitleToCamelCase,
+  convertTitleToTitleCaseDashed,
+} from "~/utils/action";
+import axios, { type CancelTokenSource } from "axios";
+import { hostUrl } from "~/utils/constants";
+import { io, Socket } from "socket.io-client";
 
 export default function Home() {
-  const [openMap, setOpenMap] = useState(false);
-  const activeMatches = [
-    {
-      id: "1",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Demon",
-      game: "Team DeathMatch",
-      players: 5,
-      maxPlayers: 8,
-      map: "Kria",
-    },
-    {
-      id: "2",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Laughter",
-      game: "Free For all",
-      players: 2,
-      maxPlayers: 10,
-      map: "Doom",
-    },
-    {
-      id: "3",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Golden",
-      game: "Capture the Flag",
-      players: 2,
-      maxPlayers: 5,
-      map: "Dome",
-    },
-    {
-      id: "4",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Robert",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 8,
-      map: "Raid",
-    },
-    {
-      id: "5",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Grey",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 5,
-      map: "Zyder",
-    },
-    {
-      id: "6",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Robert",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 8,
-      map: "Raid",
-    },
-    {
-      id: "7",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Grey",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 5,
-      map: "Zyder",
-    },
-    {
-      id: "8",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Robert",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 8,
-      map: "Raid",
-    },
-    {
-      id: "9",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Grey",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 5,
-      map: "Zyder",
-    },
-    {
-      id: "10",
-      hostImgUrl: TestUserIMG,
-      bg: TestUserIMG,
-      hostname: "Grey",
-      game: "Team DeathMatch",
-      players: 2,
-      maxPlayers: 5,
-      map: "Zyder",
-    },
-  ];
+  const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
 
+  const [openMap, setOpenMap] = useState(true);
+  const [openGame, setOpenGame] = useState("Free For All");
+
+  const [activeMatches, setActiveMatches] = useState<any>({});
+
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    socketRef.current = io(hostUrl, {
+      withCredentials: true,
+    });
+
+    const socket = socketRef.current;
+
+    socket.on("newMatches", (match) => {
+      console.log(match);
+      setActiveMatches((prevMatches: any) => ({match, ...prevMatches}));
+    });
+
+    return () => {
+      socketRef.current?.removeAllListeners();
+      socketRef.current?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const source: CancelTokenSource = axios.CancelToken.source();
+    const getMatch = async () => {
+      try {
+        const response = await axios.get("/game/get-matches", {
+          cancelToken: source.token,
+        });
+
+        setActiveMatches(response?.data?.matches);
+      } catch (error: any) {
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+        } else {
+          console.error("Error during auth verification:", error);
+        }
+      }
+    };
+
+    getMatch();
+
+    return () => {
+      source.cancel("Component unmounted, request canceled.");
+    };
+  }, []);
+
+  const matchMode: any = {
+    freeForAll: freeforallMap,
+    teamDeathmatch: teamdeathmatchMap,
+  };
+
+  const initiateMatch = (openGame: string) => async () => {
+    try {
+      const response = await axios.get(
+        `/game/${convertTitleToTitleCaseDashed(openGame)}`
+      );
+      socketRef.current?.emit("initiateGame", response?.data?.match);
+      navigate(`/lobby/${response?.data?.match?.id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to initiate match");
+    }
+  };
   return (
     <>
       <Header>
@@ -124,9 +95,9 @@ export default function Home() {
           className="flex flex-row items-center gap-1 font-bold font-serif"
         >
           <span className="h-8 aspect-square rounded-full overflow-hidden">
-            <img src={TestUserIMG} alt="" />
+            <img src={user?.avatar} alt="" />
           </span>
-          <span className="text-white text-xs">John</span>
+          <span className="text-white text-xs">{user?.username}</span>
         </Link>
       </Header>
       <main
@@ -138,33 +109,32 @@ export default function Home() {
         <div className="flex flex-col gap-2 w-1/4">
           <div className="font-mono text-xs font-bold mt-2">Active Match</div>
           <div className="overflow-y-auto flex flex-col gap-5">
-            {activeMatches.map((match) => (
+            {Object.entries(activeMatches).map(([key, match]: any) => (
               <Link
-                to={"/lobby"}
+                to={`/lobby/${key}`}
                 style={{
-                  background: `no-repeat center/100% url(${match.bg}) black`,
+                  background: `no-repeat center/100% url(${
+                    matchMode[convertDashToCamelCase(match.gameMode)]
+                  }) black`,
                   textShadow: "2px 2px 2px black",
                 }}
                 className="flex flex-row justify-between h-12 p-2 rounded-lg"
-                key={match.id}
+                key={key}
               >
                 <span className="flex gap-1 items-center text-xs">
                   <span className="w-8 aspect-square rounded-full bg-gray-700 overflow-hidden">
                     <img
-                      src={match.hostImgUrl}
-                      className="object-contain"
+                      src={`${hostUrl}/${match.players[0].avatar}`}
+                      className="object-cover"
                       alt=""
                     />
                   </span>
-                  <span>{match.hostname}</span>
+                  <span>{match.gameMode}</span>
                 </span>
                 <span className="flex flex-col justify-center gap-2 text-xs">
                   <div>{match.game}</div>
                   <div className="flex justify-end gap-2">
-                    <span>
-                      {match.players} / {match.maxPlayers}
-                    </span>
-                    <span>{match.map}</span>
+                    <span>{match.players.length} / 10</span>
                   </div>
                 </span>
               </Link>
@@ -181,35 +151,47 @@ export default function Home() {
         <Link to="/inventories/rocket">
           <img src="/imgs/player.svg" alt="" />
         </Link>
-  
+
         <div className="flex w-1/4">
           <div className="flex flex-col justify-end gap-5 w-full">
-            <div className="flex flex-col gap-5 overflow-y-auto h-0 transition-all">
-              {[
-                "Free For All",
-                "Capture the Flag",
-                "Team DeathMatch",
-                "Free For All",
-                // "Capture the Flag",
-                // "Team DeathMatch",
-                // "Free For All",
-                // "Capture the Flag",
-                // "Team DeathMatch",
-              ].map((text, index) => (
+            <div
+              className={`flex flex-col gap-5 overflow-y-auto transition-all duration-300 ${
+                openMap ? "h-auto" : "h-0"
+              }`}
+              onClick={() => setOpenMap(false)}
+            >
+              {Object.entries(matchMode).map(([key, value], index) => (
                 <div
                   key={index}
                   className="h-14 flex flex-none justify-end items-end p-2 bg-blue-600"
+                  style={{
+                    background: `no-repeat center/100% url(${value}) black`,
+                    textShadow: "2px 2px 2px black",
+                  }}
+                  onClick={(e) => setOpenGame(e.currentTarget.innerText)}
                 >
-                  {text}
+                  {convertCamelToTitleCase(key)}
                 </div>
               ))}
             </div>
-            <div className="h-20 flex flex-none justify-end items-end p-2 bg-blue-600">
-              Free For All
+            <div
+              className="h-20 flex flex-none justify-end items-end p-2 bg-blue-600"
+              style={{
+                background: `no-repeat center/100% url(${
+                  matchMode[convertTitleToCamelCase(openGame)]
+                }) black`,
+                textShadow: "2px 2px 2px black",
+              }}
+              onClick={() => setOpenMap(true)}
+            >
+              {convertCamelToTitleCase(openGame)}
             </div>
-            <Link to={'/lobby'} className="h-16 flex flex-none justify-center items-center p-2 bg-slate-600 rounded-sm text-xl font-semibold">
+            <div
+              onClick={initiateMatch(openGame)}
+              className="h-16 flex flex-none justify-center items-center p-2 bg-indigo-950 bg-blend-lighten rounded-sm text-xl font-semibold"
+            >
               Host Match
-            </Link>
+            </div>
           </div>
         </div>
       </main>

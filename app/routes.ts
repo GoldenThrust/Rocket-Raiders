@@ -2,13 +2,14 @@ import {
   type RouteConfig,
   index,
   layout,
+  prefix,
   route,
 } from "@react-router/dev/routes";
 
 export default [
   layout("./routes/layouts.tsx", [
     index("routes/home.tsx"),
-    route("/lobby", "./routes/home/lobby.tsx"),
+    route("/lobby/:gameId", "./routes/home/lobby.tsx"),
     route("/settings", "./routes/home/settings.tsx"),
     route("inventories", "./routes/home/inventory/layout.tsx", [
       route("rocket", "./routes/home/inventory/rocket.tsx"),
@@ -21,15 +22,22 @@ export default [
     // route("/tournament", "./routes/home/tournament.tsx"),
     // route("/community", "./routes/home/community.tsx"),
   ]),
-  route("auth", "./routes/authentication/layout.tsx", [
-    route("login", "./routes/authentication/login.tsx"),
-    route("logout", "./routes/authentication/logout.tsx"),
-    route("register", "./routes/authentication/register.tsx"),
-    route("forgot-password", "./routes/authentication/forgot-password.tsx"),
-    route("activate/:crypto", "./routes/authentication/activate.tsx"),
-    route(
-      "reset-password/:crypto",
-      "./routes/authentication/reset-password.tsx"
-    ),
+  ...prefix("auth", [
+    layout("./routes/authentication/layout.tsx", [
+      route("login", "./routes/authentication/login.tsx"),
+      route("logout", "./routes/authentication/logout.tsx"),
+      route("register", "./routes/authentication/register.tsx"),
+      route("forgot-password", "./routes/authentication/forgot-password.tsx"),
+      route("activate/:crypto", "./routes/authentication/activate.tsx"),
+      route(
+        "reset-password/:crypto",
+        "./routes/authentication/reset-password.tsx"
+      ),
+    ]),
+    route('admin', "./routes/admin/authentication/layout.tsx", [
+      index("./routes/admin/home.tsx"),
+      route("login/*", "./routes/admin/authentication/login.tsx"),
+      route("activate/:crypto", "./routes/admin/authentication/activate.tsx"),
+    ])
   ]),
 ] satisfies RouteConfig;

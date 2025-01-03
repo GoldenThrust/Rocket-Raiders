@@ -14,7 +14,7 @@ export default function Activate() {
     const activateAccount = async () => {
       try {
         await axios.get(`/auth/activate/${crypto}`, {
-          cancelToken: source.token, // Attach cancel token to the request
+          cancelToken: source.token,
         });
         timeout = setTimeout(() => {
           navigate("/", { replace: true });

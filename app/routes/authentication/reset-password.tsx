@@ -60,7 +60,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
     <>
       <nav>
         <Link
-          to={"../register"}
+          to={"/auth/register"}
           className="flex items-center absolute top-2 left-2"
         >
           <ChevronsLeft />

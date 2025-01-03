@@ -31,6 +31,35 @@ class Redis {
   del(key) {
     return this.client.DEL(key);
   }
+  
+  async hset(key, field, value, exp) {
+    await this.client.HSET(key, field, value);
+    this.client.expire(`${key}:${field}`, exp);
+  }
+
+  async hget(key, field) {
+    return this.client.HGET(key, field);
+  }
+
+  async hdel(key, field) {
+    return this.client.HDEL(key, field);
+  }
+
+  async setArray(key, value, exp) {
+    const cache = await redisDB.get(key);
+
+    if (!cache) {
+        await redisDB.set(key, JSON.stringify([value]), exp);
+    } else {
+        const parse = JSON.parse(cache);
+        parse.push(value);
+        await redisDB.set(key, JSON.stringify(parse), exp);
+    }
+  }
+
+  hgetall(key) {
+    return this.client.HGETALL(key);
+  }
 }
 
 class MongoDB {

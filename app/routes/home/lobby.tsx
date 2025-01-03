@@ -3,8 +3,41 @@ import { Link } from "react-router";
 import Header from "~/components/ui/home/header";
 import TestUserIMG from "~/assets/test-user.png";
 import AddUserIMG from "~/assets/add-user.svg";
+import { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+import type { Socket } from "dgram";
+import { hostUrl } from "~/utils/constants";
+import type { CancelTokenSource } from "axios";
+import axios from "axios";
 
 export default function Lobby() {
+  const [map, setMap] = useState([])
+  useEffect(() => {
+    const source: CancelTokenSource = axios.CancelToken.source();
+    const getMatch = async () => {
+      try {
+        const response = await axios.get("/game/get-matches", {
+          cancelToken: source.token,
+        });
+
+        setMap(response?.data?.matches);
+      } catch (error: any) {
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+        } else {
+          console.error("Error during auth verification:", error);
+        }
+      }
+    };
+
+    getMatch();
+
+    return () => {
+      source.cancel("Component unmounted, request canceled.");
+    };
+  }, []);
+
+
   const teamOne = [
     {
       img: TestUserIMG,
@@ -162,7 +195,7 @@ export default function Lobby() {
 
         <div className="flex *:w-full flex-col gap-1 justify-end">
           <div className="flex flex-col overflow-auto items-end gap-2 ">
-            {friends.map((friend, key) => (
+            {/* {friends.map((friend, key) => (
               <div
                 key={key}
                 className="relative flex flex-none overflow-hidden rounded-lg text-xs font-bold w-12"
@@ -177,7 +210,7 @@ export default function Lobby() {
                   {friend.name}
                 </div>
               </div>
-            ))}
+            ))} */}
           </div>
           <div className="flex">
             <input

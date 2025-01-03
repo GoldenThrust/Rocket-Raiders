@@ -4,7 +4,10 @@ import { createToken } from "../middlewares/tokenManager.js";
 import { COOKIE_NAME, hostUrl } from "../utils/constants.js";
 import mail from "../config/mail.js";
 import { redis } from "../config/db.js";
-import { v7 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid';
+import Admin from "../models/admin.js";
+import jwt from "jsonwebtoken";
+import fs from 'fs';
 
 const domain = (new URL(hostUrl)).hostname
 
@@ -156,6 +159,30 @@ class AuthenticationController {
         }
     }
 
+    async updateProfile(req, res) {
+        try {
+            const user = req.user;
+            if (!req.file && !req.file.path) {
+                return res.status(400).json({ status: "ERROR", message: "No data provided" });
+            }
+
+            let avatar = req.file.path;
+
+            if (avatar) {
+                if (fs.existsSync(user.avatar))
+                    fs.unlinkSync(user.avatar);
+                user.avatar = avatar;
+            }
+
+            await user.save();
+
+            return res.status(200).json({ status: "OK", message: "Profile updated successfully" });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });
+        }
+    }
+
     async activateAccount(req, res) {
         try {
             const authtoken = req.params.crypto;
@@ -266,10 +293,133 @@ class AuthenticationController {
             );
 
             await redis.del(`reset_password_${activationToken}`);
-            res.status(201).json({ status: "OK", message: "Your password has been updated successfully"  })
+            res.status(201).json({ status: "OK", message: "Your password has been updated successfully" })
         } catch (error) {
             console.error(error);
             return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });
+        }
+    }
+
+    async adminActivateAccount(req, res) {
+        try {
+            const authtoken = req.params.crypto;
+
+            const email = await redis.get(`admin_${authtoken}`);
+
+            if (!email) {
+                return res.status(401).json({ status: "ERROR", message: "Invalid or expired token" });
+            }
+
+            const admin = await Admin.findOneAndUpdate(
+                { email },
+                { $set: { active: true } },
+                { new: true }
+            );
+
+            if (!admin) {
+                return res.status(500).json({ status: "ERROR", message: "Admin not found" });
+            }
+
+            await redis.del(`admin_${authtoken}`)
+
+            return res
+                .status(200)
+                .json({ status: "OK", message: admin.toJSON() });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });
+        }
+    }
+
+    async adminLoginLink(req, res) {
+        try {
+            const { email: bodyEmail, crypto } = req.body;
+
+            if (!crypto) {
+                if (!bodyEmail) {
+                    return res.status(401).json({ status: "ERROR", message: "Invalid credentials" });
+                }
+
+                const admin = await Admin.findOne({ email: bodyEmail });
+
+                if (!admin) {
+                    return res.status(401).json({ status: "ERROR", message: "Invalid credentials" });
+                }
+
+                const generatedCrypto = uuid();
+                await redis.set(`admin_login_${generatedCrypto}`, bodyEmail, 60 * 60);
+
+                await mail.sendAdminSessionLink(bodyEmail, generatedCrypto);
+
+                return res.status(200).json({ status: "OK", message: "Login link sent to email." });
+            } else {
+                const storedEmail = await redis.get(`admin_login_${crypto}`);
+
+                if (!storedEmail) {
+                    return res.status(401).json({ status: "ERROR", message: "Invalid or expired token" });
+                }
+
+                const admin = await Admin.findOne({ email: storedEmail });
+
+                if (!admin) {
+                    return res.status(401).json({ status: "ERROR", message: "Invalid credentials" });
+                }
+
+                if (!admin.active) {
+                    return res.status(403).json({ status: "ERROR", message: "Account is not active" });
+                }
+
+                res.clearCookie(`${COOKIE_NAME}_admin`, {
+                    secure: true,
+                    sameSite: "none",
+                    httpOnly: true,
+                    domain,
+                    signed: true,
+                    path: "/",
+                });
+
+                const jwtSecret = process.env.JWT_SECRET;
+                const token = jwt.sign({ id: admin._id, email: admin.email }, jwtSecret, { expiresIn: "7d" });
+
+                const expires = new Date();
+                expires.setDate(expires.getDate() + 7);
+
+                res.cookie(`${COOKIE_NAME}_admin`, token, {
+                    secure: true,
+                    sameSite: "none",
+                    httpOnly: true,
+                    path: "/",
+                    domain,
+                    expires,
+                    signed: true,
+                });
+
+                return res.status(200).json({ status: "OK", message: "Login successful" });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });
+        }
+    }
+
+    async adminVerify(req, res) {
+        try {
+            return res.status(200).json({
+                status: "OK",
+                message: req.admin,
+            });
+        } catch (error) {
+            console.error(error);
+
+            if (error.name === "TokenExpiredError") {
+                return res.status(401).json({ status: "ERROR", message: "Token has expired" });
+            }
+
+            if (error.name === "JsonWebTokenError") {
+                return res.status(401).json({ status: "ERROR", message: "Invalid token" });
+            }
+
+            return res.status(500).json({ status: "ERROR", message: "Internal Server Error" });
         }
     }
 }

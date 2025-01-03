@@ -1,0 +1,31 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: aliceblue;
+    width: 50vw;
+}
+
+form input {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+input[type=submit] {
+    background-color: brown;
+    color: aliceblue;
+}
+
+canvas {
+    background-color: transparent;
+}

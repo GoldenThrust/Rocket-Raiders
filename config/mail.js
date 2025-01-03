@@ -105,8 +105,95 @@ class MailService {
         const mailOptions = {
             from: process.env.MAIL_USERNAME,
             to: user.email,
-            subject: "Sync: Reset Password",
+            subject: "Rocket Raider: Reset Password",
             text: `Please reset your password by clicking the following link: ${resetPasswordLink}`,
+            html: mailTemplate
+        };
+
+        return new Promise((resolve, reject) => {
+            this.transporter.sendMail(mailOptions, async (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(result);
+            });
+        });
+    }
+
+    async sendAdminActivationLink(email, crypto) {
+        const resetPasswordLink = `${this.hostUrl}/auth/admin/activate/${crypto}/`;
+        const imgLink = `${this.hostUrl}/logo.svg`;
+
+        const mailTemplate = `
+                            <body>
+                                <div
+                                    style="font-family: Arial, sans-serif; background-color: #212020; padding: 20px; text-align:center; color:antiquewhite; width: 50%; margin: auto; border-radius: 10%;">
+                                    <h1 style="text-align: center; color: #333;">
+                                        <img src=${imgLink} alt="Rocket Raider">
+                                    </h1>
+                                    <p style="font-size: 16px;">
+                                        Activate Admin Page
+                                    </p>
+                                    <p style="text-align: center;">
+                                        <a href="${resetPasswordLink}"
+                                            style="background-color: #814caf; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                                            Active Link
+                                        </a>
+                                    </p>
+                                    <p style="font-size: 14px; color: #999; text-align: center;">
+                                        This link will expire in 1 hours. If you didn’t request this, please ignore this email.
+                                    </p>
+                                </div>
+                            </body>`;
+
+        const mailOptions = {
+            from: process.env.MAIL_USERNAME,
+            to: email,
+            subject: "Rocket Raider: Admin",
+            text: `Account Activation Link: ${resetPasswordLink}`,
+            html: mailTemplate
+        };
+
+        return new Promise((resolve, reject) => {
+            this.transporter.sendMail(mailOptions, async (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(result);
+            });
+        });
+    }
+    async sendAdminSessionLink(email, crypto) {
+        const resetPasswordLink = `${this.hostUrl}/auth/admin/login/${crypto}`;
+        const imgLink = `${this.hostUrl}/logo.svg`;
+
+        const mailTemplate = `
+                            <body>
+                                <div
+                                    style="font-family: Arial, sans-serif; background-color: #212020; padding: 20px; text-align:center; color:antiquewhite; width: 50%; margin: auto; border-radius: 10%;">
+                                    <h1 style="text-align: center; color: #333;">
+                                        <img src=${imgLink} alt="Rocket Raider">
+                                    </h1>
+                                    <p style="font-size: 16px;">
+                                        CLick to Login
+                                    </p>
+                                    <p style="text-align: center;">
+                                        <a href="${resetPasswordLink}"
+                                            style="background-color: #814caf; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                                            Login Link
+                                        </a>
+                                    </p>
+                                    <p style="font-size: 14px; color: #999; text-align: center;">
+                                        This link will expire in 1 hours. If you didn’t request this, please ignore this email.
+                                    </p>
+                                </div>
+                            </body>`;
+
+        const mailOptions = {
+            from: process.env.MAIL_USERNAME,
+            to: email,
+            subject: "Rocket Raider: Login Link",
+            text: `Please login by clicking the following link: ${resetPasswordLink}`,
             html: mailTemplate
         };
 

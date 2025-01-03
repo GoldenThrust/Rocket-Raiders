@@ -1,5 +1,14 @@
 import { Outlet } from "react-router";
 import Logo from "../../assets/logo.svg";
+import type { Route } from "./+types/layout";
+
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Rocket Raider: authentications" },
+    { name: "description", content: "Welcome to React Router!" },
+  ];
+}
 
 export default function ProjectLayout() {
   return (
