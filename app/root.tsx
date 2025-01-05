@@ -39,25 +39,25 @@ export const links: Route.LinksFunction = () => [
 
 function setFullScreen() {
   if (document.fullscreenElement === null) {
-    document.documentElement.requestFullscreen().then((response) => {
-      if (screen.orientation && screen.orientation.lock) {
-        if (
-          ["portrait", "portrait-primary"].includes(screen.orientation.type)
-        ) {
-          console.log(screen.orientation.type);
-          screen.orientation
-            .lock("landscape")
-            .then(() => {
-              console.log("Switched to landscape orientation.");
-            })
-            .catch((error: Error) => {
-              console.error("Orientation lock failed:", error);
-            });
-        }
-      } else {
-        alert("Screen Orientation API is not supported on this browser.");
-      }
-    });
+    // document.documentElement.requestFullscreen().then((response) => {
+    //   if (screen.orientation && screen.orientation.lock) {
+    //     if (
+    //       ["portrait", "portrait-primary"].includes(screen.orientation.type)
+    //     ) {
+    //       console.log(screen.orientation.type);
+    //       screen.orientation
+    //         .lock("landscape")
+    //         .then(() => {
+    //           console.log("Switched to landscape orientation.");
+    //         })
+    //         .catch((error: Error) => {
+    //           console.error("Orientation lock failed:", error);
+    //         });
+    //     }
+    //   } else {
+    //     alert("Screen Orientation API is not supported on this browser.");
+    //   }
+    // });
   }
 }
 

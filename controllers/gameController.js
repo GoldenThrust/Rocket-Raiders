@@ -1,4 +1,5 @@
 import { redis } from "../config/db.js";
+import Map from "../models/map.js";
 import Match from "../models/match.js";
 import { v7 as uuid } from "uuid";
 
@@ -7,13 +8,17 @@ class gameController {
     async initiateGame(req, res) {
         try {
             const id = uuid()
+            const gameMode = req.params.gameMode;
 
             const match = {
                 id: id,
-                gameMode: req.params.gameMode,
-                players: [{ id: req.user._id, avatar: req.user.avatar, username: req.user.username }],
+                gameMode,
+                players: gameMode === "free-for-all" ? [Array(20).fill({})] : [Array(6).fill({}), Array(6).fill({})],
+                initiator: req.user,
+                map: {},
+                connectPlayer: 0
             }
-
+        
             await redis.hset('matches', id, JSON.stringify(match), 10 * 60)
             res.status(201).json({
                 message: "Game initiated successfully",
@@ -49,10 +54,8 @@ class gameController {
 
     async getMatch(req, res) {
         try {
-            const match = await Match.findById(req.params.matchId)
-            // .populate("players", "username")
-            // .populate("teams.players", "username")
-            // .populate("map");
+            const match = JSON.parse(await redis.hget('matches', req.params.matchId));
+
 
             if (!match) {
                 return res.status(404).json({
@@ -111,4 +114,4 @@ class gameController {
     }
 }
 
-export default(new gameController);
+export default (new gameController);

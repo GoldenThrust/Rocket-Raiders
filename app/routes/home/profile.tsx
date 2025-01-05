@@ -6,6 +6,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "~/store";
 import { convertCamelToTitleCase } from "~/utils/action";
+import { hostUrl } from "~/utils/constants";
 
 export default function Profile() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -42,7 +43,7 @@ export default function Profile() {
         </div>
         <div className="relative group">
           <img
-            src={user?.avatar}
+            src={`${hostUrl}/${user?.avatar}`}
             alt="User Avatar"
             className="rounded-full w-32 h-32 object-cover"
           />

@@ -8,6 +8,8 @@ import { v4 as uuid } from 'uuid';
 import Admin from "../models/admin.js";
 import jwt from "jsonwebtoken";
 import fs from 'fs';
+import Map from "../models/map.js";
+import Rocket from "../models/rocket.js";
 
 const domain = (new URL(hostUrl)).hostname
 
@@ -419,6 +421,45 @@ class AuthenticationController {
                 return res.status(401).json({ status: "ERROR", message: "Invalid token" });
             }
 
+            return res.status(500).json({ status: "ERROR", message: "Internal Server Error" });
+        }
+    }
+
+    async createMap(req, res) {
+        const { name, description } = req.body;
+        try {
+            let background = req?.file?.path;
+
+            if (!name || !description || !background) {
+                return res.status(401).json({ status: "ERROR", message: "Invalid Credentials" });
+            }
+
+            const map = new Map({ name, description, background });
+            await map.save();
+
+            res.status(201).json({ status: "OK", message: "Map created successfully" });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ status: "ERROR", message: "Internal Server Error" });
+        }
+    }
+
+    async createRocket(req, res) {
+        const { name, speed, durability, speciality, fireRate, range } = req.body;
+
+        try {
+            let image = req.file.path;
+
+            if (!name || !description || !image) {
+                return res.status(401).json({ status: "ERROR", message: "Invalid Credentials" });
+            }
+
+            const rocket = new Rocket({ name, speed, durability, speciality, fireRate, range, image });
+            await rocket.save();
+
+            res.status(201).json({ status: "OK", message: "Rocket created successfully" });
+        } catch (err) {
+            console.error(err);
             return res.status(500).json({ status: "ERROR", message: "Internal Server Error" });
         }
     }

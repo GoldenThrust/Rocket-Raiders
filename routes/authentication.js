@@ -15,9 +15,11 @@ authRoutes.post('/forgot-password', authController.forgotPassword)
 authRoutes.post('/reset-password/:crypto', validate(resetPasswordValidator), authController.resetPassword)
 authRoutes.get('/admin/activate/:crypto', authController.adminActivateAccount)
 authRoutes.post('/admin/login', authController.adminLoginLink)
-authRoutes.get('/admin/verify', authController.adminVerify)
-authRoutes.get('/admin/create-map', verifyAdminToken, upload('map').single('avatar'), authController.adminVerify)
-authRoutes.get('/admin/create-rocket', verifyAdminToken, upload('rocket').single('avatar'), authController.adminVerify)
+authRoutes.get('/admin/verify', verifyAdminToken, authController.adminVerify)
+
+
+authRoutes.post('/admin/create-map', verifyAdminToken, upload('map').single('map'), authController.createMap)
+authRoutes.post('/admin/create-rocket', verifyAdminToken, upload('rocket').single('rocket'), authController.createMap)
 
 
 export default authRoutes;

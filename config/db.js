@@ -32,7 +32,7 @@ class Redis {
     return this.client.DEL(key);
   }
   
-  async hset(key, field, value, exp) {
+  async hset(key, field, value, exp = 10 * 60) {
     await this.client.HSET(key, field, value);
     this.client.expire(`${key}:${field}`, exp);
   }

@@ -3,7 +3,9 @@ import { COOKIE_NAME } from "../utils/constants.js";
 import process from "process";
 
 export function createToken(user, expiresIn) {
-  const payload = { id: user._id.toString(), email: user.email, fullname: user.fullname, image: user.image };
+  const { password, active, ...response } = user.toJSON();
+  console.log(response)
+  const payload = { ...response, id: response._id.toString() };
   const jwtSecret = process.env.JWT_SECRET;
   const token = jwt.sign(payload, jwtSecret, {
     expiresIn,

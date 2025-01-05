@@ -10,6 +10,9 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
   try {
     const response = await axios.post("/auth/admin/login", data);
+    if (data.name === "crypto") {
+      window.location.reload();
+    }
     return response?.data;
   } catch (error: any) {
     console.error("Login error:", error);
@@ -18,7 +21,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
-  useAdminAuth()
+  useAdminAuth();
   const { "*": param } = useParams();
   if (actionData && actionData.status === "OK") {
     console.log("User is authenticated");

@@ -1,26 +1,129 @@
 import { ChevronsLeft } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import Header from "~/components/ui/home/header";
 import TestUserIMG from "~/assets/test-user.png";
 import AddUserIMG from "~/assets/add-user.svg";
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import type { Socket } from "dgram";
+import type { Socket } from "socket.io-client";
 import { hostUrl } from "~/utils/constants";
 import type { CancelTokenSource } from "axios";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "~/store";
 
 export default function Lobby() {
-  const [map, setMap] = useState([])
+  const [maps, setMap] = useState<Array<any>>([]);
+  const [selectedMap, setSelectedMap] = useState<any>({});
+  const [match, setMatch] = useState<any>({});
+  const [players, setPlayers] = useState<Array<Array<any>>>([]);
+  const { gameId } = useParams();
+  const [myLoc, setMyLoc] = useState(`${0}:${0}`);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+
+  const socketRef = useRef<Socket | null>(null);
+  const homeRef = useRef<Socket | null>(null);
+
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
+    socketRef.current = io(`${hostUrl}/lobby`, {
+      withCredentials: true,
+      query: {
+        gameId,
+      },
+    });
+
+    homeRef.current = io(`${hostUrl}/home`, {
+      withCredentials: true,
+    });
+
+    const socket = socketRef.current;
+
+    socket.on("setGame", (match) => {
+      setPlayers(match.players);
+      if (
+        Object.entries(match.map).length > 0 &&
+        user.username !== match.initiator.username
+      )
+        setSelectedMap(match.map);
+      setMatch(match);
+    });
+
+    socket.on("map", (map) => {
+      if (Object.entries(map).length > 0) setSelectedMap(map);
+    });
+
+    socket.on("matchDeleted", () => {
+      homeRef.current?.disconnect();
+      navigate("/");
+    });
+
     const getMatch = async () => {
       try {
-        const response = await axios.get("/game/get-matches", {
+        const response = await axios.get(`/game/get-match/${gameId}`, {
           cancelToken: source.token,
         });
 
-        setMap(response?.data?.matches);
+        const match = response.data?.match;
+
+        if (match.connectPlayer > 20) {
+          homeRef.current?.disconnect();
+          socket.disconnect();
+          navigate("/");
+        }
+        const playerData: Array<any> = match.players;
+        let loc = "0:0";
+        let skip = false;
+
+        for (let i = 0; i < playerData.length; i++) {
+          for (let j = 0; j < playerData[i].length; j++) {
+            if (Object.entries(playerData[i][j]).length === 0) {
+              if (!skip) {
+                playerData[i][j] = user;
+                loc = `${i}:${j}`;
+                setMyLoc(loc);
+                skip = true;
+              }
+            } else {
+              if (playerData[i][j].username === user.username) {
+                socketRef.current?.disconnect();
+                navigate("/");
+              }
+            }
+          }
+        }
+
+        socketRef.current?.emit("joinLobby");
+        socketRef.current?.emit("setGame", loc, loc);
+        homeRef.current?.emit("joinLobby");
+
+        setPlayers(playerData);
+        const map = await getMaps();
+        if (Object.entries(match.map).length > 0) setSelectedMap(match.map);
+        else {
+          setSelectedMap(map);
+          socketRef.current?.emit("setMap", maps[0]);
+        }
+        setMatch(match);
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch match data:", error);
+          navigate("/");
+        }
+      }
+    };
+
+    const getMaps = async () => {
+      try {
+        const response = await axios.get("/game/maps", {
+          cancelToken: source.token,
+        });
+
+        const maps = response?.data?.maps;
+
+        setMap(maps);
+        return maps[0];
       } catch (error: any) {
         if (axios.isCancel(error)) {
           console.log("Request canceled:", error.message);
@@ -34,78 +137,43 @@ export default function Lobby() {
 
     return () => {
       source.cancel("Component unmounted, request canceled.");
+      socketRef.current?.removeAllListeners();
+      socketRef.current?.disconnect();
+      homeRef.current?.removeAllListeners();
+      homeRef.current?.disconnect();
     };
-  }, []);
+  }, [gameId]);
 
+  const selectMap = (map: any) => (e: React.MouseEvent) => {
+    if (match.initiator.username === user.username) {
+      setSelectedMap(map);
+      socketRef.current?.emit("setMap", map);
 
-  const teamOne = [
-    {
-      img: TestUserIMG,
-      name: "Smith",
-    },
-    {
-      img: TestUserIMG,
-      name: "Slith",
-    },
-    {
-      img: TestUserIMG,
-      name: "Corber",
-    },
-    {
-      img: TestUserIMG,
-      name: "Darth",
-    },
-    {
-      img: TestUserIMG,
-      name: "Klog",
-    },
-  ];
+      e.currentTarget.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    }
+  };
 
-  const teamTwo = [
-    {
-      img: TestUserIMG,
-      name: "Carter",
-    },
-    {
-      img: TestUserIMG,
-      name: "Bab",
-    },
-    {
-      img: TestUserIMG,
-      name: "Trio",
-    },
-    {
-      img: TestUserIMG,
-      name: "Lowland",
-    },
-    {
-      img: TestUserIMG,
-      name: "naps",
-    },
-  ];
+  const setGame = (loc: Array<any>) => (e: React.MouseEvent) => {
+    if (Object.entries(players[loc[0]][loc[1]]).length === 0) {
+      const newPlayers = [...players];
 
-  const friends = [
-    {
-      img: TestUserIMG,
-      name: "Dave",
-    },
-    {
-      img: TestUserIMG,
-      name: "Sarah",
-    },
-    {
-      img: TestUserIMG,
-      name: "Jeff",
-    },
-    {
-      img: TestUserIMG,
-      name: "Gary",
-    },
-    {
-      img: TestUserIMG,
-      name: "Karen",
-    },
-  ];
+      const mloc = myLoc.split(":");
+      newPlayers[Number(mloc[0])][Number(mloc[1])] = {};
+      newPlayers[loc[0]][loc[1]] = user;
+
+      setMyLoc(`${loc[0]}:${loc[1]}`);
+      socketRef.current?.emit(
+        "setGame",
+        `${loc[0]}:${loc[1]}`,
+        `${mloc[0]}:${mloc[1]}`
+      );
+      setPlayers(newPlayers);
+    }
+  };
 
   return (
     <>
@@ -117,85 +185,94 @@ export default function Lobby() {
           <ChevronsLeft /> Leave Game
         </Link>
       </Header>
-      <main className="flex" style={{
-          height: '90%'
-        }}>
-        <div className="flex flex-col w-10/12 items-center gap-2">
-          <div className="flex flex-col text-white justify-center items-center h-full w-2/3 gap-5">
-            <div className="flex place-self-start gap-2">
-              {teamOne.map((team, key) => (
+      <main
+        className="flex"
+        style={{
+          height: "90%",
+        }}
+      >
+        <div className="flex flex-col w-11/12 items-center gap-2">
+          <div className="flex  flex-col text-white justify-center items-center h-full w-2/3 gap-5">
+            {players.map((teams: any, i) => (
+              <>
                 <div
-                  key={key}
-                  className="relative rounded-full overflow-hidden text-xs font-bold"
+                  key={i}
+                  className={`flex flex-wrap ${
+                    i == 0 ? "place-self-start" : "place-self-end"
+                  } gap-2`}
                 >
-                  <img src={team.img} className="w-16"></img>
-                  <div
-                    className="absolute left-1/2 bottom-1 -translate-x-1/2 opacity-50"
-                    style={{
-                      textShadow: "1px 1px 1px black",
-                    }}
-                  >
-                    {team.name}
-                  </div>
+                  {teams.map((team: any, key: any) => (
+                    <div
+                      className="flex flex-col justify-center items-center"
+                      key={key + teams.length * i}
+                      id={key + teams.length * i}
+                      onClick={setGame([i, key])}
+                    >
+                      <div className="relative flex-none rounded-full w-11 lg:w-16 overflow-hidden font-bold bg-gray-600 aspect-square border">
+                        {team.avatar && (
+                          <img
+                            src={`${hostUrl}/${team.avatar}`}
+                            className="object-cover"
+                          />
+                        )}
+                      </div>
+                      <div
+                        className="text-xs"
+                        style={{
+                          textShadow: "1px 1px 1px black",
+                        }}
+                      >
+                        {team.username}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <span className="text-2xl font-bold font-serif text-red-200" style={{
-                      textShadow: "1px 1px 1px black",
-                    }}>VS</span>
-            <div className="flex place-self-end gap-2">
-              {teamTwo.map((team, key) => (
-                <div
-                  key={key}
-                  className="relative rounded-full overflow-hidden text-xs font-bold"
-                >
-                  <img src={team.img} className="w-16"></img>
-                  <div
-                    className="absolute left-1/2 bottom-1 -translate-x-1/2 opacity-50"
-                    style={{
-                      textShadow: "1px 1px 1px black",
-                    }}
-                  >
-                    {team.name}
-                  </div>
-                </div>
-              ))}
-            </div>
+                <>
+                  {i === 0 && players.length === 2 && (
+                    <span
+                      className="text-2xl font-bold font-serif text-red-200"
+                      style={{
+                        textShadow: "1px 1px 1px black",
+                      }}
+                    >
+                      VS
+                    </span>
+                  )}
+                </>
+              </>
+            ))}
           </div>
-          <div className="flex h-24 justify-around gap-1 w-4/6 overflow-x-auto m-auto">
-            {[
-              { name: "kria", img: "" },
-              { name: "Zyder", img: "" },
-              { name: "Raid", img: "" },
-              { name: "Doom", img: "" },
-              { name: "kria", img: "" },
-              { name: "kria", img: "" },
-              { name: "Doom", img: "" },
-              { name: "kria", img: "" },
-              { name: "kria", img: "" },
-              { name: "Doom", img: "" },
-              { name: "kria", img: "" },
-              { name: "kria", img: "" },
-              { name: "Doom", img: "" },
-              { name: "kria", img: "" },
-              { name: "kria", img: "" },
-            ].map((map, key) => (
-              <div
-                style={{
-                  background: `no-repeat center/100% url(${map.img}) black`,
-                }}
-                key={key}
-                className="w-32 flex-none text-white overflow-hidden flex justify-center items-end"
-              >
-                {map.name}
-              </div>
+          <div
+            className={`flex gap-1 w-4/6 h-25 flex-none overflow-x-auto m-auto `}
+          >
+            {maps.map((map, key: any) => (
+              <>
+                <div
+                  style={{
+                    background: `black`,
+                  }}
+                  key={key}
+                  id={key}
+                  className="relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end"
+                  onClick={selectMap(map)}
+                >
+                  <span className="z-1 absolute font-extrabold">
+                    {map.name}
+                  </span>
+                  <img
+                    src={`${hostUrl}/${map.background}`}
+                    alt=""
+                    className="object-cover"
+                  />
+                </div>
+              </>
             ))}
           </div>
         </div>
 
-        <div className="flex *:w-full flex-col gap-1 justify-end">
-          <div className="flex flex-col overflow-auto items-end gap-2 ">
-            {/* {friends.map((friend, key) => (
+        <div className="flex flex-col gap-1 justify-end">
+          {/* <div className="flex flex-col overflow-auto items-end gap-2 ">
+            {friends.map((friend, key) => (
               <div
                 key={key}
                 className="relative flex flex-none overflow-hidden rounded-lg text-xs font-bold w-12"
@@ -210,9 +287,24 @@ export default function Lobby() {
                   {friend.name}
                 </div>
               </div>
-            ))} */}
+            ))}
+          </div> */}
+          <div
+            style={{
+              background: `black`,
+            }}
+            className="relative w-40 lg:w-72 aspect-video flex-none text-white overflow-hidden flex justify-center items-end"
+          >
+            <span className="z-1 absolute font-extrabold right-2">
+              {selectedMap?.name}
+            </span>
+            <img
+              src={`${hostUrl}/${selectedMap?.background}`}
+              alt=""
+              className="object-cover"
+            />
           </div>
-          <div className="flex">
+          {/* <div className="flex">
             <input
               type="search"
               placeholder="Search matches..."
@@ -221,7 +313,7 @@ export default function Lobby() {
             <div className="bg-slate-500 rounded-e w-10 flex justify-center items-center">
               <img src={AddUserIMG} className="w-1/2" alt="" />
             </div>
-          </div>
+          </div> */}
           <div className="h-14 flex flex-none justify-center items-center p-2 bg-slate-600 rounded-sm text-lg font-semibold">
             Start Match
           </div>

@@ -7,7 +7,8 @@ const RocketSchema = new Schema({
   fireRate: { type: Number, required: true },
   speciality: { type: String, required: true },
   range: { type: Number, required: true },
-  rocketImage: { type: String, required: true },
+  image: { type: String, required: true },
+  muzzle: [{ type: String, required: true }]
   // weaponSlots: { type: Number, default: 2 },
 }, { timestamps: true });
 

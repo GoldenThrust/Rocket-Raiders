@@ -27,7 +27,7 @@ const options = {
   password: `Golden455256`
 };
 
-
+ 
 const allowUrl = [`http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000'];
 
 
@@ -88,12 +88,16 @@ server.listen(PORT, () => {
       origin: [allowUrl],
       credentials: true
     },
-
   });
+  const home = io.of('/home');
+  const lobby = io.of('/lobby');
+  const ios = {home, lobby, io};
 
-  io.use(socketcookieParser);
-  io.use(socketAuthenticateToken);
-  websocket.getConnection(io);
+  Object.values(ios).forEach((io)=> {
+      io.use(socketcookieParser);
+      io.use(socketAuthenticateToken);
+  })
+  websocket.getConnection(ios);
 
   console.log(`Server is running on https://localhost:${PORT}`);
 });

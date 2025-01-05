@@ -16,7 +16,7 @@ export const authSlice = createSlice({
     },
     setUserData: (state, action: PayloadAction<any | null>) => {
       const user = action.payload;
-      user.avatar = `${hostUrl}/${user.avatar}`;
+      user.avatar = user.avatar;
       state.user = action.payload;
     },
   },

@@ -28,15 +28,18 @@ export default function Home() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    socketRef.current = io(hostUrl, {
+    socketRef.current = io(`${hostUrl}/home`, {
       withCredentials: true,
     });
 
     const socket = socketRef.current;
 
     socket.on("newMatches", (match) => {
-      console.log(match);
-      setActiveMatches((prevMatches: any) => ({match, ...prevMatches}));
+      setActiveMatches((prevMatches: any) => ({ [`${match.id}`]: match  , ...prevMatches }));
+    });
+
+    socket.on("updateMatches", (matches) => {
+      setActiveMatches(matches);
     });
 
     return () => {
@@ -95,7 +98,7 @@ export default function Home() {
           className="flex flex-row items-center gap-1 font-bold font-serif"
         >
           <span className="h-8 aspect-square rounded-full overflow-hidden">
-            <img src={user?.avatar} alt="" />
+            <img src={`${hostUrl}/${user?.avatar}`} alt="" />
           </span>
           <span className="text-white text-xs">{user?.username}</span>
         </Link>
@@ -124,7 +127,7 @@ export default function Home() {
                 <span className="flex gap-1 items-center text-xs">
                   <span className="w-8 aspect-square rounded-full bg-gray-700 overflow-hidden">
                     <img
-                      src={`${hostUrl}/${match.players[0].avatar}`}
+                      src={`${hostUrl}/${match.initiator.avatar}`}
                       className="object-cover"
                       alt=""
                     />
@@ -134,7 +137,10 @@ export default function Home() {
                 <span className="flex flex-col justify-center gap-2 text-xs">
                   <div>{match.game}</div>
                   <div className="flex justify-end gap-2">
-                    <span>{match.players.length} / 10</span>
+                    <span>
+                      {match.connectPlayer} /{" "}
+                      {match.gameMode === "free-for-all" ? 20 : 12}
+                    </span>
                   </div>
                 </span>
               </Link>
