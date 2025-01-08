@@ -19,7 +19,10 @@ authRoutes.get('/admin/verify', verifyAdminToken, authController.adminVerify)
 
 
 authRoutes.post('/admin/create-map', verifyAdminToken, upload('map').single('map'), authController.createMap)
-authRoutes.post('/admin/create-rocket', verifyAdminToken, upload('rocket').single('rocket'), authController.createMap)
+authRoutes.post('/admin/create-rocket', verifyAdminToken, upload('rocket').fields([
+    { name: 'rocket', maxCount: 1 },
+    { name: 'flame', maxCount: 1 }
+]), authController.createRocket)
 
 
 export default authRoutes;

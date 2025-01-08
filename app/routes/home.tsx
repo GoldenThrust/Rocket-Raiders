@@ -41,6 +41,7 @@ export default function Home() {
     socket.on("updateMatches", (matches) => {
       setActiveMatches(matches);
     });
+    
 
     return () => {
       socketRef.current?.removeAllListeners();
@@ -129,7 +130,7 @@ export default function Home() {
                     <img
                       src={`${hostUrl}/${match.initiator.avatar}`}
                       className="object-cover"
-                      alt=""
+                      alt={`${match.initiator.username}`}
                     />
                   </span>
                   <span>{match.gameMode}</span>
@@ -155,7 +156,7 @@ export default function Home() {
         </div>
 
         <Link to="/inventories/rocket">
-          <img src="/imgs/player.svg" alt="" />
+          <img src={`${hostUrl}/${user?.selectedRocket?.rocket}`} alt="" />
         </Link>
 
         <div className="flex w-1/4">

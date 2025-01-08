@@ -46,11 +46,18 @@ export default function AdminHome() {
         required: true,
       },
       {
+        type: "file",
+        name: "flame",
+        placeholder: "Rocket flame Image",
+        required: false,
+      },
+      {
         type: "text",
         name: "name",
         placeholder: "Rocket name",
         required: true,
       },
+      { type: "number", name: "price", placeholder: "Speed", required: true },
       { type: "number", name: "speed", placeholder: "Speed", required: true },
       {
         type: "number",
@@ -59,7 +66,7 @@ export default function AdminHome() {
         required: true,
       },
       {
-        type: "number",
+        type: "name",
         name: "speciality",
         placeholder: "Speciality",
         required: true,

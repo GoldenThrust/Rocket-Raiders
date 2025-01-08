@@ -1,173 +1,50 @@
-import { useState } from "react";
+import axios, { type CancelTokenSource } from "axios";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "~/store";
+import { hostUrl } from "~/utils/constants";
 
 export default function Rocket() {
-  const [selectedRocket, setSelectedRocket] = useState<string>("Zaber");
+  const [selectedRocket, setSelectedRocket] = useState<string>("Rocket");
+  const [rockets, setRockets] = useState<Array<any>>([]);
+  const { user } = useSelector((state: RootState) => state.auth);
 
-  const rockets = [
-    {
-      name: "Zaber",
-      img: "/imgs/player.svg",
-      speed: "10m/s",
-      ability: "Snare Snipers",
-      price: 0,
-      bought: true,
-    },
-    {
-      name: "Chrome",
-      img: "/imgs/player.svg",
-      speed: "12m/s",
-      ability: "Hyper Boost",
-      price: 50,
-      bought: false,
-    },
-    {
-      name: "Liz",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 40,
-      bought: false,
-    },
-    {
-      name: "Jock",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 30,
-      bought: false,
-    },
-    {
-      name: "Scrim",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 20,
-      bought: false,
-    },
-    {
-      name: "Zareber",
-      img: "/imgs/player.svg",
-      speed: "10m/s",
-      ability: "Snare Snipers",
-      price: 0,
-      bought: true,
-    },
-    {
-      name: "Cherome",
-      img: "/imgs/player.svg",
-      speed: "12m/s",
-      ability: "Hyper Boost",
-      price: 50,
-      bought: false,
-    },
-    {
-      name: "Lriz",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 40,
-      bought: false,
-    },
-    {
-      name: "Jorck",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 30,
-      bought: false,
-    },
-    {
-      name: "Scrgim",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 20,
-      bought: false,
-    },
-    {
-      name: "Zaqber",
-      img: "/imgs/player.svg",
-      speed: "10m/s",
-      ability: "Snare Snipers",
-      price: 0,
-      bought: true,
-    },
-    {
-      name: "Chroome",
-      img: "/imgs/player.svg",
-      speed: "12m/s",
-      ability: "Hyper Boost",
-      price: 50,
-      bought: false,
-    },
-    {
-      name: "Lirz",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 40,
-      bought: false,
-    },
-    {
-      name: "Jorck",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 30,
-      bought: false,
-    },
-    {
-      name: "Scrjim",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 20,
-      bought: false,
-    },
-    {
-      name: "Zabelr",
-      img: "/imgs/player.svg",
-      speed: "10m/s",
-      ability: "Snare Snipers",
-      price: 0,
-      bought: true,
-    },
-    {
-      name: "Chrompe",
-      img: "/imgs/player.svg",
-      speed: "12m/s",
-      ability: "Hyper Boost",
-      price: 50,
-      bought: false,
-    },
-    {
-      name: "Liqz",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 40,
-      bought: false,
-    },
-    {
-      name: "Jomck",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 30,
-      bought: false,
-    },
-    {
-      name: "Scrimw",
-      img: "/imgs/player.svg",
-      speed: "9m/s",
-      ability: "EMP Shockwave",
-      price: 20,
-      bought: false,
-    },
-  ];
+  useEffect(() => {
+    const source: CancelTokenSource = axios.CancelToken.source();
+    const getMatch = async () => {
+      try {
+        const response = await axios.get("/rocket", {
+          cancelToken: source.token,
+        });
+
+        setRockets(response?.data?.rockets);
+      } catch (error: any) {
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+        } else {
+          console.error("Error ", error);
+        }
+      }
+    };
+
+    getMatch();
+
+    return () => {
+      source.cancel("Component unmounted, request canceled.");
+    };
+  }, []);
 
   const handleSelection = (name: string) => {
     setSelectedRocket(name);
+  };
+
+  const useRocket = (name: string) => async () => {
+    try {
+      const response = await axios.get(`/rocket/set-rocket/${name}`);
+      window.location.pathname = '/';
+    } catch (error) {
+      console.log("Error(" + error + ")");
+    }
   };
 
   return (
@@ -179,37 +56,51 @@ export default function Rocket() {
             selectedRocket === rocket.name
               ? "border-blue-500 bg-blue-50 shadow-lg z-50"
               : "border-gray-200"
-          }`}
+          } `}
           onClick={() => handleSelection(rocket.name)}
         >
           <img
-            src={rocket.img}
+            src={`${hostUrl}/${rocket.rocket}`}
             alt={`Image of ${rocket.name} rocket`}
             className="w-20 h-20 mx-auto mb-4"
           />
-          <h2 className={`font-bold text-xl ${ selectedRocket === rocket.name ? 'text-black': ''}`}>{rocket.name}</h2>
-          <p className="text-sm text-gray-600">Speed: {rocket.speed}</p>
-          <p className="text-sm text-gray-600">Ability: {rocket.ability}</p>
-          <div
-            className={`absolute left-0 w-full max-w-md p-6 rounded-lg shadow-md text-center bg-blue-50 ${
-              rocket.name === selectedRocket ? "block" : "hidden"
+          <h2
+            className={`font-bold text-xl ${
+              user?.selectedRocket?.name === rocket.name ? "text-black" : ""
             }`}
           >
-            {rocket.bought ? (
-              <button className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
-                Use Rocket
-              </button>
-            ) : (
-              <>
-                <p className="mt-4 text-gray-700 font-bold">
-                  Price: ${rocket.price}
-                </p>
-                <button className="mt-2 px-6 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600">
-                  Test Rocket
+            {rocket.name}
+          </h2>
+          <p className="text-sm text-gray-600">Speed: {rocket.speed}m/s</p>
+          <p className="text-sm text-gray-600">
+            Speciality: {rocket.speciality}
+          </p>
+          {rocket.name === selectedRocket && user?.selectedRocket?.name !== rocket.name &&  (
+            <div
+              className={`absolute left-0 w-full max-w-md p-6 rounded-lg shadow-md text-center bg-blue-50`}
+            >
+              {rocket.price === 0 ? (
+                <button
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600"
+                  onClick={useRocket(rocket.name)}
+                >
+                  Use Rocket
                 </button>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <p className="mt-4 text-gray-700 font-bold">
+                    Price: ${rocket.price}
+                  </p>
+                  <button
+                    className="mt-2 px-6 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
+                    onClick={useRocket(rocket.name)}
+                  >
+                    Test Rocket
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>

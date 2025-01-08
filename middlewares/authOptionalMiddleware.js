@@ -35,8 +35,7 @@ export function authOptionalMiddleware(regexArray) {
                         });
                     }
 
-                    req.user = user;
-
+                    req.user = await user.populate(['selectedRocket']);
                     return next();
                 } catch (error) {
                     if (!req.path.startsWith('/api')) {

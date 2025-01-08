@@ -1,9 +1,12 @@
+import { SocketAddress } from "net";
+import Match from "../models/match.js";
 import { redis } from "./db.js";
 
 class WebSocket {
     constructor() {
         this.ios = null;
         this.socket = null;
+        this.homeSocket = null;
         this.connectionPromise = null;
     }
 
@@ -12,6 +15,7 @@ class WebSocket {
 
         this.connectionPromise = new Promise((resolve, reject) => {
             this.ios.home.on('connection', async (socket) => {
+                this.homeSocket = socket;
                 socket.on('initiateGame', (match) => {
                     socket.broadcast.emit('newMatches', match);
                 });
@@ -34,6 +38,7 @@ class WebSocket {
 
             this.ios.lobby.on('connection', async (socket) => {
                 const gameId = socket.handshake.query.gameId;
+                socket.join(gameId);
 
                 socket.on('joinLobby', async () => {
                     try {
@@ -45,6 +50,14 @@ class WebSocket {
                     }
                 })
 
+                socket.on('startGame', async () => {
+                    const match = JSON.parse(await redis.hget('matches', gameId));
+
+                    socket.emit('startGame', match);
+
+                    // const gameMatch = new Match({ })
+                });
+
 
                 socket.on('setGame', async (loc, oldLoc) => {
                     try {
@@ -55,11 +68,11 @@ class WebSocket {
                         if (oldLoc) {
                             match.players[j[0]][j[1]] = {};
                         }
-                        match.players[i[0]][i[1]] = socket.user;
+
+                        match.players[i[0]][i[1]] = socket.user.toJSON();
 
                         await redis.hset('matches', gameId, JSON.stringify(match));
 
-                        socket.join(gameId);
                         socket.to(gameId).emit('setGame', match);
                     } catch (err) {
                         console.error('Error in setGame:', err);
@@ -113,6 +126,8 @@ class WebSocket {
                     } catch (err) {
                         console.error('Error in disconnecting:', err);
                     }
+
+                    this.homeSocket.broadcast.emit('updateMatches', await this.getMatches());
 
                     console.log('Disconnecting from /lobby');
                 });

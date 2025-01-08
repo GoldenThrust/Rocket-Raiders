@@ -171,7 +171,7 @@ class AuthenticationController {
             let avatar = req.file.path;
 
             if (avatar) {
-                if (fs.existsSync(user.avatar))
+                if (fs.existsSync(user.avatar) && user.avatar !== 'assets/imgs/uploads/default-avatar.svg')
                     fs.unlinkSync(user.avatar);
                 user.avatar = avatar;
             }
@@ -445,17 +445,21 @@ class AuthenticationController {
     }
 
     async createRocket(req, res) {
-        const { name, speed, durability, speciality, fireRate, range } = req.body;
-
+        const { name, speed, durability, speciality, fireRate, range, price } = req.body;
+        const rocket = req.files['rocket'] ? req.files['rocket'][0].path : null;
+        const flame = req.files['flame'] ? req.files['flame'][0].path : null;
         try {
-            let image = req.file.path;
-
-            if (!name || !description || !image) {
+            if (!name || !speed || !durability || !speciality || !fireRate || !range || !rocket || !price) {
                 return res.status(401).json({ status: "ERROR", message: "Invalid Credentials" });
             }
+            const data = { name, speed, durability, speciality, fireRate, range, rocket, price};
 
-            const rocket = new Rocket({ name, speed, durability, speciality, fireRate, range, image });
-            await rocket.save();
+            if (flame) {
+                data['flame'] = flame;
+            }
+
+            const rockets = new Rocket({ ...data });
+            await rockets.save();
 
             res.status(201).json({ status: "OK", message: "Rocket created successfully" });
         } catch (err) {

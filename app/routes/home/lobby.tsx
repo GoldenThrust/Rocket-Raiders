@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import Header from "~/components/ui/home/header";
 import TestUserIMG from "~/assets/test-user.png";
 import AddUserIMG from "~/assets/add-user.svg";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 import { hostUrl } from "~/utils/constants";
@@ -43,6 +43,7 @@ export default function Lobby() {
     socket.on("setGame", (match) => {
       setPlayers(match.players);
       if (
+        match.map &&
         Object.entries(match.map).length > 0 &&
         user.username !== match.initiator.username
       )
@@ -51,12 +52,17 @@ export default function Lobby() {
     });
 
     socket.on("map", (map) => {
-      if (Object.entries(map).length > 0) setSelectedMap(map);
+      if (map && Object.entries(map).length > 0) setSelectedMap(map);
     });
 
     socket.on("matchDeleted", () => {
       homeRef.current?.disconnect();
       navigate("/");
+    });
+
+    socket.on("startGame", (matchID) => {
+      console.log(matchID);
+      // window.location.href = `${hostUrl}/match/${matchID}`;
     });
 
     const getMatch = async () => {
@@ -67,18 +73,29 @@ export default function Lobby() {
 
         const match = response.data?.match;
 
-        if (match.connectPlayer > 20) {
+        if (match.gameMode === "free-for-all" && match.connectPlayer >= 20) {
+          homeRef.current?.disconnect();
+          socket.disconnect();
+          navigate("/");
+        } else if (
+          match.gameMode === "team-deathmatch" &&
+          match.connectPlayer >= 12
+        ) {
           homeRef.current?.disconnect();
           socket.disconnect();
           navigate("/");
         }
+
         const playerData: Array<any> = match.players;
         let loc = "0:0";
         let skip = false;
 
         for (let i = 0; i < playerData.length; i++) {
           for (let j = 0; j < playerData[i].length; j++) {
-            if (Object.entries(playerData[i][j]).length === 0) {
+            if (
+              playerData[i][j] &&
+              Object.entries(playerData[i][j]).length === 0
+            ) {
               if (!skip) {
                 playerData[i][j] = user;
                 loc = `${i}:${j}`;
@@ -100,11 +117,15 @@ export default function Lobby() {
 
         setPlayers(playerData);
         const map = await getMaps();
-        if (Object.entries(match.map).length > 0) setSelectedMap(match.map);
+
+        if (match.map && Object.entries(match.map).length > 0)
+          setSelectedMap(match.map);
         else {
           setSelectedMap(map);
           socketRef.current?.emit("setMap", maps[0]);
         }
+
+        console.log("get matches");
         setMatch(match);
       } catch (error) {
         if (!axios.isCancel(error)) {
@@ -158,7 +179,10 @@ export default function Lobby() {
   };
 
   const setGame = (loc: Array<any>) => (e: React.MouseEvent) => {
-    if (Object.entries(players[loc[0]][loc[1]]).length === 0) {
+    if (
+      players[loc[0]][loc[1]] &&
+      Object.entries(players[loc[0]][loc[1]]).length === 0
+    ) {
       const newPlayers = [...players];
 
       const mloc = myLoc.split(":");
@@ -172,6 +196,16 @@ export default function Lobby() {
         `${mloc[0]}:${mloc[1]}`
       );
       setPlayers(newPlayers);
+    }
+  };
+
+  const startGame = async () => {
+    if (match.initiator.username === user.username) {
+      try {
+        socketRef.current?.emit("startGame");
+      } catch (err: any) {
+        alert(err.data.message);
+      }
     }
   };
 
@@ -194,9 +228,9 @@ export default function Lobby() {
         <div className="flex flex-col w-11/12 items-center gap-2">
           <div className="flex  flex-col text-white justify-center items-center h-full w-2/3 gap-5">
             {players.map((teams: any, i) => (
-              <>
+              <React.Fragment key={i}>
                 <div
-                  key={i}
+                  key={`08-${i}`}
                   className={`flex flex-wrap ${
                     i == 0 ? "place-self-start" : "place-self-end"
                   } gap-2`}
@@ -204,8 +238,7 @@ export default function Lobby() {
                   {teams.map((team: any, key: any) => (
                     <div
                       className="flex flex-col justify-center items-center"
-                      key={key + teams.length * i}
-                      id={key + teams.length * i}
+                      key={team.username || `${i}-${key}`}
                       onClick={setGame([i, key])}
                     >
                       <div className="relative flex-none rounded-full w-11 lg:w-16 overflow-hidden font-bold bg-gray-600 aspect-square border">
@@ -239,7 +272,7 @@ export default function Lobby() {
                     </span>
                   )}
                 </>
-              </>
+              </React.Fragment>
             ))}
           </div>
           <div
@@ -251,7 +284,7 @@ export default function Lobby() {
                   style={{
                     background: `black`,
                   }}
-                  key={key}
+                  key={map.name}
                   id={key}
                   className="relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end"
                   onClick={selectMap(map)}
@@ -300,7 +333,7 @@ export default function Lobby() {
             </span>
             <img
               src={`${hostUrl}/${selectedMap?.background}`}
-              alt=""
+              alt={selectedMap?.name}
               className="object-cover"
             />
           </div>
@@ -314,7 +347,10 @@ export default function Lobby() {
               <img src={AddUserIMG} className="w-1/2" alt="" />
             </div>
           </div> */}
-          <div className="h-14 flex flex-none justify-center items-center p-2 bg-slate-600 rounded-sm text-lg font-semibold">
+          <div
+            className="h-14 flex flex-none justify-center items-center p-2 bg-blue-600 rounded-sm text-lg font-semibold"
+            onClick={startGame}
+          >
             Start Match
           </div>
         </div>

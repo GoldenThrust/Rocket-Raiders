@@ -1,20 +1,13 @@
-import Queue from 'bull';
-import { DEV } from './utils/constants';
+import mongodb, { redis } from "./config/db.js";
+import Rocket from "./models/rocket.js";
+import User from "./models/user.js";
 
-
-export const GameQueue = DEV ? new Queue('GameQueue') : new Queue('GameQueue', {
-    redis: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD
-    }
+mongodb.run().then(() => {
+    redis.run().then(async () => {
+        const rockets = await Rocket.find({ name: { $ne: 'Rocket' } });
+        for (const [i, rocket] of rockets.entries()) {
+            rocket.price = Math.ceil(Math.random() * 10) * (i + 10);
+            await rocket.save();
+        }
+    });
 });
-
-GameQueue.process(async (job) => {
-    const { matchId } = job.data;
-
-    const timeId = setInterval(()=> {
-
-        clearInterval(timeId);
-    }, 5000)
-})

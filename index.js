@@ -17,6 +17,7 @@ import { authOptionalMiddleware } from "./middlewares/authOptionalMiddleware.js"
 import gameRoutes from "./routes/game.js";
 import socketcookieParser from "./middlewares/socketCookieParser.js";
 import socketAuthenticateToken from "./middlewares/socketTokenManager.js";
+import rocketRoutes from "./routes/rocket.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -54,6 +55,7 @@ app.use(authOptionalMiddleware(optionalAuthRoutes))
 
 app.use('/api/auth', authRoutes);
 app.use('/api/game', gameRoutes);
+app.use('/api/rocket', rocketRoutes);
 
 
 app.set("view engine", "ejs");
