@@ -1,4 +1,4 @@
-const imgs = ['./assets/imgs/player.svg', './assets/imgs/playerburst.svg', './assets/imgs/explosion.png']
+const imgs = ['/assets/imgs/player.svg', '/assets/imgs/playerburst.svg', '/assets/imgs/explosion.png']
 
 const imgData = [];
 

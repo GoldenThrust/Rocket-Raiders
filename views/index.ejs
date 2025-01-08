@@ -4,13 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="./logic/game.js"></script>
-    <link rel="stylesheet" href="assets/styles/style.css">
+    <script type="module" src="/logic/game.js"></script>
+    <link rel="stylesheet" href="/assets/styles/style.css">
     <title>Alien Raid</title>
 </head>
 
 <body>
     <!-- canvas -->
+    <script type="module">
+        const userData = <%- JSON.stringify(user) %>;
+        const matchID = <%- JSON.stringify(matchID) %>;
+        console.log('User Data:', userData, matchID);
+    </script>
 </body>
 
 </html>

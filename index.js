@@ -40,6 +40,8 @@ const optionalAuthRoutes = [
   /^\/assets\//, // Assets folder
   /^\/imgs\//, // Images folder
   /^\/styles\//, // Styles folder
+  /^\/assets\//, // Styles folder
+  /^\/logic\//, // game logic folder
   /^\/auth\/(?!verify|update-profile|logout).*$/, // Auth routes excluding specific actions
   /^\/api\/auth\/(?!verify|update-profile|logout|admin.*).*$/, // API auth routes excluding specific actions and admin subpaths
 ];
@@ -59,18 +61,22 @@ app.use('/api/rocket', rocketRoutes);
 
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
 
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use('/logic', express.static(path.join(__dirname, "logic")));
-app.use('/', express.static(path.join(__dirname, "views")));
-app.use(express.static(path.join(__dirname, "build", "client")));
 
-app.get('/game', (req, res) => {
-  res.render('index');
+app.set("views", path.join(__dirname, "views"));
+app.use('/', express.static(path.join(__dirname, "views")));
+
+app.get('/game/:matchID', (req, res) => {
+  res.render('index', {
+    matchID: req.params.matchID,
+    user: req.user
+  });
 })
 
+app.use(express.static(path.join(__dirname, "build", "client")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "client", "index.html"));
 });

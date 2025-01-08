@@ -12,7 +12,7 @@ const scaleFactor = 0.5;
 export let cp = []
 
 const bg = new Image();
-bg.src = './imgs/star.png'
+bg.src = '/imgs/star.png'
 
 ctx.drawImage(bg, 0, 0, 100, 100)
 

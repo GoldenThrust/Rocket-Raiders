@@ -62,9 +62,13 @@ export default function Lobby() {
 
     socket.on("startGame", (matchID) => {
       console.log(matchID);
-      // window.location.href = `${hostUrl}/match/${matchID}`;
+      // window.location.href = `${hostUrl}/game/${matchID}`;
     });
 
+    socket.on("gameStartFailed", (errorMessage) => {
+      alert(errorMessage);
+    });
+  
     const getMatch = async () => {
       try {
         const response = await axios.get(`/game/get-match/${gameId}`, {
@@ -118,11 +122,13 @@ export default function Lobby() {
         setPlayers(playerData);
         const map = await getMaps();
 
-        if (match.map && Object.entries(match.map).length > 0)
+        if (match.map && Object.entries(match.map).length > 0) {
           setSelectedMap(match.map);
-        else {
+          socketRef.current?.emit("setMap", match.map);
+          console.log("setmap", match.map);
+        } else {
           setSelectedMap(map);
-          socketRef.current?.emit("setMap", maps[0]);
+          socketRef.current?.emit("setMap", map);
         }
 
         console.log("get matches");

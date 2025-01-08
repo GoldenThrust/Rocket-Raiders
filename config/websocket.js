@@ -1,6 +1,9 @@
 import { SocketAddress } from "net";
 import Match from "../models/match.js";
 import { redis } from "./db.js";
+import Map from "../models/map.js";
+
+// TODO: make sure only initiator are allow to make some changes in backend.
 
 class WebSocket {
     constructor() {
@@ -52,10 +55,66 @@ class WebSocket {
 
                 socket.on('startGame', async () => {
                     const match = JSON.parse(await redis.hget('matches', gameId));
+                    console.log(match);
 
-                    socket.emit('startGame', match);
+                    const players = [];
+                    let teams = [];
+                    const ratio = { red: 0, blue: 0 };
 
-                    // const gameMatch = new Match({ })
+                    match.players.forEach((team, i) => {
+                        team.forEach((player) => {
+                            if (player && Object.entries(player).length > 0) {
+                                players.push(player._id);
+                                if (match.players.length === 2) {
+                                    if (i === 0) {
+                                        ratio.blue++;
+                                        teams.push({ name: 'blue', player: player._id });
+                                    } else {
+                                        ratio.red++;
+                                        teams.push({ name: 'red', player: player._id });
+                                    }
+                                } else {
+                                    teams.push({ name: 'neutral', player: player._id });
+                                }
+                            }
+                        });
+                    });
+
+                    if (ratio.red !== ratio.blue) {
+                        const totalPlayers = ratio.red + ratio.blue;
+                        const half = Math.floor(totalPlayers / 2);
+
+                        if (ratio.red > half) {
+                            const playersToMove = ratio.red - half;
+                            for (let i = 0; i < playersToMove; i++) {
+                                const player = teams.find(team => team.name === 'red');
+                                if (player) {
+                                    player.name = 'blue';
+                                    ratio.red--;
+                                    ratio.blue++;
+                                }
+                            }
+                        } else if (ratio.blue > half) {
+                            const playersToMove = ratio.blue - half;
+                            for (let i = 0; i < playersToMove; i++) {
+                                const player = teams.find(team => team.name === 'blue');
+                                if (player) {
+                                    player.name = 'red';
+                                    ratio.blue--;
+                                    ratio.red++;
+                                }
+                            }
+                        }
+                    }
+
+                    if (ratio.red > 1 || ratio.blue > 1 || match.players.length === 1) {
+                        const newMatch = new Match({ players, teams, gameMode: match.gameMode, map: match.map._id })
+
+                        socket.emit('startGame', newMatch.toJSON());
+                    } else {
+                        console.log(ratio)
+                        socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
+                    }
                 });
 
 
