@@ -33,6 +33,7 @@ class WebSocket {
 
             this.ios.lobby.on('connection', async (socket) => {
                 const gameId = socket.handshake.query.gameId;
+                console.log(gameId);
                 socket.join(gameId);
 
                 socket.on('joinLobby', async () => {
@@ -48,7 +49,6 @@ class WebSocket {
 
                 socket.on('startGame', async () => {
                     const match = JSON.parse(await redis.hget('matches', gameId));
-                    console.log(match);
 
                     const players = [];
                     let teams = [];
@@ -102,8 +102,10 @@ class WebSocket {
 
                     if (ratio.red > 1 || ratio.blue > 1 || match.players.length === 1) {
                         const newMatch = new Match({ players, teams, gameMode: match.gameMode, map: match.map._id })
-
-                        socket.emit('startGame', newMatch.toJSON());
+                        await newMatch.save();
+                        await redis.hdel('matches', gameId);
+                        this.ios.home.emit('matchDeleted', match.id)
+                        this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
                     } else {
                         console.log(ratio)
                         socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
@@ -124,7 +126,6 @@ class WebSocket {
                         match.players[i[0]][i[1]] = socket.user.toJSON();
 
                         await redis.hset('matches', gameId, JSON.stringify(match));
-                        console.log(loc, oldLoc, i,  j);
 
                         socket.to(gameId).emit('setGame', match);
                     } catch (err) {
@@ -146,6 +147,8 @@ class WebSocket {
                 socket.on("disconnecting", async () => {
                     try {
                         const match = JSON.parse(await redis.hget('matches', gameId));
+                        if (!match) return;
+
                         const playerData = match.players;
                         let nextPlayer = null;
                         let changeInitiator = false;
@@ -169,7 +172,7 @@ class WebSocket {
 
                         if (--match.connectPlayer <= 0) {
                             await redis.hdel('matches', gameId);
-                            this.ios.lobby.emit('matchDeleted');
+                            socket.to(gameId).emit('matchDeleted');
                             this.ios.home.emit('matchDeleted', match.id)
                         } else {
                             await redis.hset('matches', gameId, JSON.stringify(match));

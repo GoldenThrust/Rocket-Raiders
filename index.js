@@ -30,7 +30,7 @@ const options = {
 };
 
 
-const allowUrl = [`http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000'];
+const allowUrl = [`http://localhost:3000`, `http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000'];
 
 
 const app = express();
@@ -70,16 +70,28 @@ app.use('/logic', express.static(path.join(__dirname, "logic")));
 app.set("views", path.join(__dirname, "views"));
 app.use('/', express.static(path.join(__dirname, "views")));
 
-app.get('/game', async (req, res) => {
-  const matchID = req.query.matchid;
+app.get('/game/', async (req, res) => {
+  const gameId = req.query.gameid;
 
-  if (!matchID) return res.redirect('/');
+  if (!gameId) return res.redirect('/');
 
-  const match = Match.findById(matchID);
-  if (!match) return res.redirect('/');
+  const match = await Match.findById(gameId);
+  if (!match || match.endTime) return res.redirect('/');
+  const players = match.players;
 
-  const valid = match.players.filter(player => player._id === req.user._id);
-  console.log(valid);
+  let auth = false;
+  for (let i = 0; i < players.length; i++) {
+    if (players[i]._id.toString() === req.user._id.toString()) {
+      auth = true;
+      console.log('player found')
+      break;
+    }
+  }
+
+  console.log('starting game', auth);
+
+  if (!auth) return res.redirect('/');
+
   res.render('index');
 })
 
@@ -104,6 +116,7 @@ server.listen(PORT, () => {
       credentials: true
     },
   });
+
   const home = io.of('/home');
   const lobby = io.of('/lobby');
   const ios = { home, lobby, io };

@@ -1,6 +1,5 @@
 import mongodb, { redis } from "./config/db.js";
 import Rocket from "./models/rocket.js";
-import User from "./models/user.js";
 
 mongodb.run().then(() => {
     redis.run().then(async () => {

@@ -17,8 +17,10 @@ export const matchSlice = createSlice({
     },
     setActiveMatch: (state, action: PayloadAction<any | null>) => {
       const match = action.payload;
-      const newMatch = { ...state.activeMatches, [match.id]: match }
-      state.activeMatches[match.id] = { [match.id]: match, ...newMatch };
+      if (match && match.id) {
+        const { [match.id]: _, ...rest } = state.activeMatches;
+        state.activeMatches = { [match.id]: match, ...rest };
+      }
     },
     delActiveMatch: (state, action: PayloadAction<any>) => {
       const matchid = action.payload;

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production react-router build",
     "dev": "react-router dev --host",
-    "start": "cross-env NODE_ENV=production react-router-serve ./build/server/index.js",
+    "start": "serve .\\build\\client",
     "typecheck": "react-router typegen && tsc",
     "server": "node index.js && worker.js",
     "start-server": "nodemon index.js",
@@ -56,6 +56,7 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "postcss": "^8.4.49",
+    "serve": "^14.2.4",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",

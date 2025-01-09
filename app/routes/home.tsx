@@ -13,7 +13,6 @@ import {
 } from "~/utils/action";
 import axios, { type CancelTokenSource } from "axios";
 import { hostUrl } from "~/utils/constants";
-import { io, Socket } from "socket.io-client";
 import { setActiveMatch, setActiveMatches, delActiveMatch } from "~/redux/matchSlice";
 import { useSocket } from "~/context/socketContext";
 

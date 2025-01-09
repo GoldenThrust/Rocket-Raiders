@@ -28,10 +28,13 @@ export default function Lobby() {
     const source: CancelTokenSource = axios.CancelToken.source();
     socketRef.current = io(`${hostUrl}/lobby`, {
       withCredentials: true,
+      forceNew: true,
       query: {
         gameId,
       },
     });
+
+    console.log(gameId);
 
     const socket = socketRef.current;
 
@@ -40,7 +43,7 @@ export default function Lobby() {
       if (
         match.map &&
         Object.entries(match.map).length > 0 &&
-        user.username !== match.initiator.username
+        user?.username !== match?.initiator?.username
       )
         setSelectedMap(match.map);
       setMatch(match);
@@ -55,7 +58,7 @@ export default function Lobby() {
     });
 
     socket.on("startGame", (matchID) => {
-      window.location.href = `${hostUrl}/game/?=matchid=${matchID}`;
+      window.location.href = `${hostUrl}/game/?gameid=${matchID}`;
     });
 
     socket.on("gameStartFailed", (errorMessage) => {
@@ -85,28 +88,26 @@ export default function Lobby() {
         let loc = "0:0";
         let skip = false;
 
-        for (let i = 0; i < playerData.length; i++) {
+        for (let i = 0; i < playerData.length && !skip; i++) {
           for (let j = 0; j < playerData[i].length; j++) {
             if (
               playerData[i][j] &&
-              Object.entries(playerData[i][j]).length === 0
+              Object.keys(playerData[i][j]).length === 0
             ) {
               if (!skip) {
                 playerData[i][j] = user;
                 loc = `${i}:${j}`;
                 setMyLoc(loc);
                 skip = true;
+                break;
               }
-            } else {
-              if (playerData[i][j].username === user.username) {
-                socketRef.current?.disconnect();
-                navigate("/");
-              }
+            } else if (playerData[i][j]?.username === user?.username) {
+              socketRef.current?.disconnect();
+              navigate("/");
+              return;
             }
           }
         }
-
-        console.log(loc, loc)
 
         socketRef.current?.emit("joinLobby");
         socketRef.current?.emit("setGame", loc, loc);
@@ -160,7 +161,7 @@ export default function Lobby() {
   }, [gameId]);
 
   const selectMap = (map: any) => (e: React.MouseEvent) => {
-    if (match.initiator.username === user.username) {
+    if (match.initiator?.username === user?.username) {
       setSelectedMap(map);
       socketRef.current?.emit("setMap", map);
 
@@ -194,7 +195,7 @@ export default function Lobby() {
   };
 
   const startGame = async () => {
-    if (match.initiator.username === user.username) {
+    if (match?.initiator?.username === user?.username) {
       try {
         socketRef.current?.emit("startGame");
       } catch (err: any) {
@@ -232,13 +233,13 @@ export default function Lobby() {
                   {teams.map((team: any, key: any) => (
                     <div
                       className="flex flex-col justify-center items-center"
-                      key={team.username || `${i}-${key}`}
+                      key={team?.username || `${i}-${key}`}
                       onClick={setGame([i, key])}
                     >
                       <div className="relative flex-none rounded-full w-11 lg:w-16 overflow-hidden font-bold bg-gray-600 aspect-square border">
-                        {team.avatar && (
+                        {team?.avatar && (
                           <img
-                            src={`${hostUrl}/${team.avatar}`}
+                            src={`${hostUrl}/${team?.avatar}`}
                             className="object-cover"
                           />
                         )}
@@ -249,7 +250,7 @@ export default function Lobby() {
                           textShadow: "1px 1px 1px black",
                         }}
                       >
-                        {team.username}
+                        {team?.username}
                       </div>
                     </div>
                   ))}
@@ -278,18 +279,18 @@ export default function Lobby() {
                   style={{
                     background: `black`,
                   }}
-                  key={map.name}
+                  key={map?.name}
                   id={key}
-                  className="relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end"
+                  className={`relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end`}
                   onClick={selectMap(map)}
                 >
                   <span className="z-1 absolute font-extrabold">
-                    {map.name}
+                    {map?.name}
                   </span>
                   <img
-                    src={`${hostUrl}/${map.background}`}
+                    src={`${hostUrl}/${map?.background}`}
                     alt=""
-                    className="object-cover"
+                    className={`object-cover`}
                   />
                 </div>
               </>
@@ -342,7 +343,11 @@ export default function Lobby() {
             </div>
           </div> */}
           <div
-            className="h-14 flex flex-none justify-center items-center p-2 bg-blue-600 rounded-sm text-lg font-semibold"
+            className={`h-14 flex flex-none justify-center items-center p-2 ${
+              match?.initiator?.username !== user?.username
+                ? "bg-gray-400"
+                : "bg-blue-600"
+            } rounded-sm text-lg font-semibold`}
             onClick={startGame}
           >
             Start Match

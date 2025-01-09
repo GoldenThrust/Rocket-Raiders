@@ -38,6 +38,7 @@ class Redis {
   }
 
   async hget(key, field) {
+    console.log(key, field);
     return this.client.HGET(key, field);
   }
 
@@ -46,14 +47,14 @@ class Redis {
   }
 
   async setArray(key, value, exp) {
-    const cache = await redisDB.get(key);
+    const cache = await this.client.get(key);
 
     if (!cache) {
-        await redisDB.set(key, JSON.stringify([value]), exp);
+        await this.client.set(key, JSON.stringify([value]), exp);
     } else {
         const parse = JSON.parse(cache);
         parse.push(value);
-        await redisDB.set(key, JSON.stringify(parse), exp);
+        await this.client.set(key, JSON.stringify(parse), exp);
     }
   }
 
