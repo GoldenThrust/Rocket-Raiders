@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import AuthReducer from "~/redux/authenticationSlice"
+import AuthReducer from "~/redux/authenticationSlice";
+import matchReducer from "~/redux/matchSlice";
 
 const store = configureStore({
   reducer: {
-    auth: AuthReducer
+    auth: AuthReducer,
+    match: matchReducer,
   },
 });
 

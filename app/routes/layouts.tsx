@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { useNotAuth } from "~/hooks/auth";
+// import { useNotAuth } from "~/hooks/auth";
 import type { Route } from "./+types/layouts";
 
 export function meta({}: Route.MetaArgs) {
@@ -10,7 +10,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function HomeLayout() {
-  useNotAuth();
+  // useNotAuth();
 
   return (
     <div className="flex flex-col gap-1 h-screen p-3">

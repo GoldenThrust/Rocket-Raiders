@@ -9,7 +9,6 @@ class WebSocket {
     constructor() {
         this.ios = null;
         this.socket = null;
-        this.homeSocket = null;
         this.connectionPromise = null;
     }
 
@@ -18,20 +17,13 @@ class WebSocket {
 
         this.connectionPromise = new Promise((resolve, reject) => {
             this.ios.home.on('connection', async (socket) => {
-                this.homeSocket = socket;
-                socket.on('initiateGame', (match) => {
-                    socket.broadcast.emit('newMatches', match);
-                });
-
-                socket.on('joinLobby', () => {
-                    setTimeout(async () => {
-                        socket.broadcast.emit('updateMatches', await this.getMatches());
-                    }, 1000);
+                socket.on("connected", () => {
+                    console.log('Connected from /home');
+                    resolve(socket);
                 })
 
-                socket.on("disconnecting", async () => {
-                    console.log('Disconnected from /home');
-                    socket.broadcast.emit('updateMatches', await this.getMatches());
+                socket.on('initiateGame', (match) => {
+                    socket.broadcast.emit('newMatches', match);
                 });
 
                 socket.on("disconnect", () => {
@@ -48,6 +40,7 @@ class WebSocket {
                         const match = JSON.parse(await redis.hget('matches', gameId));
                         match.connectPlayer++;
                         await redis.hset('matches', gameId, JSON.stringify(match));
+                        this.ios.home.emit('updateMatches', match)
                     } catch (error) {
                         console.error(error);
                     }
@@ -131,6 +124,7 @@ class WebSocket {
                         match.players[i[0]][i[1]] = socket.user.toJSON();
 
                         await redis.hset('matches', gameId, JSON.stringify(match));
+                        console.log(loc, oldLoc, i,  j);
 
                         socket.to(gameId).emit('setGame', match);
                     } catch (err) {
@@ -176,17 +170,16 @@ class WebSocket {
                         if (--match.connectPlayer <= 0) {
                             await redis.hdel('matches', gameId);
                             this.ios.lobby.emit('matchDeleted');
+                            this.ios.home.emit('matchDeleted', match.id)
                         } else {
                             await redis.hset('matches', gameId, JSON.stringify(match));
                             socket.to(gameId).emit('setGame', match);
+                            this.ios.home.emit('updateMatches', match)
                         }
-
                         socket.leave(gameId);
                     } catch (err) {
                         console.error('Error in disconnecting:', err);
                     }
-
-                    this.homeSocket.broadcast.emit('updateMatches', await this.getMatches());
 
                     console.log('Disconnecting from /lobby');
                 });

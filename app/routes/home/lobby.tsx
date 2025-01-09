@@ -9,7 +9,7 @@ import type { Socket } from "socket.io-client";
 import { hostUrl } from "~/utils/constants";
 import type { CancelTokenSource } from "axios";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "~/store";
 
 export default function Lobby() {
@@ -23,7 +23,6 @@ export default function Lobby() {
   const navigate = useNavigate();
 
   const socketRef = useRef<Socket | null>(null);
-  const homeRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
@@ -32,10 +31,6 @@ export default function Lobby() {
       query: {
         gameId,
       },
-    });
-
-    homeRef.current = io(`${hostUrl}/home`, {
-      withCredentials: true,
     });
 
     const socket = socketRef.current;
@@ -56,19 +51,17 @@ export default function Lobby() {
     });
 
     socket.on("matchDeleted", () => {
-      homeRef.current?.disconnect();
       navigate("/");
     });
 
     socket.on("startGame", (matchID) => {
-      console.log(matchID);
-      // window.location.href = `${hostUrl}/game/${matchID}`;
+      window.location.href = `${hostUrl}/game/?=matchid=${matchID}`;
     });
 
     socket.on("gameStartFailed", (errorMessage) => {
       alert(errorMessage);
     });
-  
+
     const getMatch = async () => {
       try {
         const response = await axios.get(`/game/get-match/${gameId}`, {
@@ -78,14 +71,12 @@ export default function Lobby() {
         const match = response.data?.match;
 
         if (match.gameMode === "free-for-all" && match.connectPlayer >= 20) {
-          homeRef.current?.disconnect();
           socket.disconnect();
           navigate("/");
         } else if (
           match.gameMode === "team-deathmatch" &&
           match.connectPlayer >= 12
         ) {
-          homeRef.current?.disconnect();
           socket.disconnect();
           navigate("/");
         }
@@ -115,9 +106,10 @@ export default function Lobby() {
           }
         }
 
+        console.log(loc, loc)
+
         socketRef.current?.emit("joinLobby");
         socketRef.current?.emit("setGame", loc, loc);
-        homeRef.current?.emit("joinLobby");
 
         setPlayers(playerData);
         const map = await getMaps();
@@ -125,13 +117,11 @@ export default function Lobby() {
         if (match.map && Object.entries(match.map).length > 0) {
           setSelectedMap(match.map);
           socketRef.current?.emit("setMap", match.map);
-          console.log("setmap", match.map);
         } else {
           setSelectedMap(map);
           socketRef.current?.emit("setMap", map);
         }
 
-        console.log("get matches");
         setMatch(match);
       } catch (error) {
         if (!axios.isCancel(error)) {
@@ -166,8 +156,6 @@ export default function Lobby() {
       source.cancel("Component unmounted, request canceled.");
       socketRef.current?.removeAllListeners();
       socketRef.current?.disconnect();
-      homeRef.current?.removeAllListeners();
-      homeRef.current?.disconnect();
     };
   }, [gameId]);
 

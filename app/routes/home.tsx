@@ -1,5 +1,4 @@
 import Header from "~/components/ui/home/header";
-import TestUserIMG from "~/assets/test-user.png";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,39 +14,35 @@ import {
 import axios, { type CancelTokenSource } from "axios";
 import { hostUrl } from "~/utils/constants";
 import { io, Socket } from "socket.io-client";
+import { setActiveMatch, setActiveMatches, delActiveMatch } from "~/redux/matchSlice";
+import { useSocket } from "~/context/socketContext";
 
 export default function Home() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
+  const { activeMatches } = useSelector((state: RootState) => state.match);
 
   const [openMap, setOpenMap] = useState(true);
   const [openGame, setOpenGame] = useState("Free For All");
 
-  const [activeMatches, setActiveMatches] = useState<any>({});
-
-  const socketRef = useRef<Socket | null>(null);
+  const socket = useSocket();
 
   useEffect(() => {
-    socketRef.current = io(`${hostUrl}/home`, {
-      withCredentials: true,
-    });
-
-    const socket = socketRef.current;
-
-    socket.on("newMatches", (match) => {
-      setActiveMatches((prevMatches: any) => ({ [`${match.id}`]: match  , ...prevMatches }));
-    });
-
-    socket.on("updateMatches", (matches) => {
-      setActiveMatches(matches);
-    });
-    
+    const setMatch = (match: any) => {
+      dispatch(setActiveMatch(match));
+    };
+    const delMatch = (matchid: any) => {
+      dispatch(delActiveMatch(matchid));
+    };
+    socket?.on("newMatches", setMatch);
+    socket?.on("updateMatches", setMatch);
+    socket?.on("matchDeleted", delMatch);
 
     return () => {
-      socketRef.current?.removeAllListeners();
-      socketRef.current?.disconnect();
+      socket?.removeListener("newMatches", setMatch);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
@@ -57,7 +52,7 @@ export default function Home() {
           cancelToken: source.token,
         });
 
-        setActiveMatches(response?.data?.matches);
+        dispatch(setActiveMatches(response?.data?.matches));
       } catch (error: any) {
         if (axios.isCancel(error)) {
           console.log("Request canceled:", error.message);
@@ -84,7 +79,7 @@ export default function Home() {
       const response = await axios.get(
         `/game/${convertTitleToTitleCaseDashed(openGame)}`
       );
-      socketRef.current?.emit("initiateGame", response?.data?.match);
+      socket?.emit("initiateGame", response?.data?.match);
       navigate(`/lobby/${response?.data?.match?.id}`);
     } catch (error) {
       console.error(error);

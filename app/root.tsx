@@ -9,7 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios, { type CancelTokenSource } from "axios";
 import { hostUrl } from "./utils/constants";
 
@@ -19,7 +19,8 @@ import {
   setAuthenticationState,
   setUserData,
 } from "./redux/authenticationSlice";
-
+import { io, Socket } from "socket.io-client";
+import SocketProvider, { useSocket } from "~/context/socketContext";
 axios.defaults.baseURL = `${hostUrl}/api`;
 axios.defaults.withCredentials = true;
 
@@ -94,6 +95,7 @@ function Wrapper() {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+
   useEffect(() => {
     const source: CancelTokenSource = axios.CancelToken.source();
 
@@ -133,10 +135,25 @@ function Wrapper() {
 }
 
 export default function App() {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const newSocket = io(`${hostUrl}/home`, {
+      withCredentials: true,
+    });
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
+  }, []);
+
   return (
-    <Provider store={store}>
-      <Wrapper />
-    </Provider>
+    <SocketProvider value={socket}>
+      <Provider store={store}>
+        <Wrapper />
+      </Provider>
+    </SocketProvider>
   );
 }
 

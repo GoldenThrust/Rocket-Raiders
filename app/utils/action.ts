@@ -1,5 +1,8 @@
 import axios from "axios";
+import { io, Socket } from "socket.io-client";
+import { hostUrl } from "./constants";
 
+let socket: Socket | null;
 export async function verifyAdmin() {
   try {
     const response = await axios.get("/auth/admin/verify");
@@ -15,39 +18,47 @@ export async function verifyAdmin() {
   }
 }
 
-
 export function convertCamelToTitleCase(input: string) {
-  if (!input) return '';
+  if (!input) return "";
 
   const formatted = input
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, match => match.toUpperCase());
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (match) => match.toUpperCase());
 
   return formatted.trim();
 }
 
 export function convertTitleToCamelCase(input: string) {
-  if (!input) return '';
+  if (!input) return "";
 
   return input
-      .toLowerCase()
-      .replace(/(?:\s+)([a-z])/g, (_, letter) => letter.toUpperCase())
-      .replace(/^./, match => match.toLowerCase());
+    .toLowerCase()
+    .replace(/(?:\s+)([a-z])/g, (_, letter) => letter.toUpperCase())
+    .replace(/^./, (match) => match.toLowerCase());
 }
 
 export function convertTitleToTitleCaseDashed(input: string) {
-  if (!input) return '';
+  if (!input) return "";
 
   return input
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/^-/, match => match.toLowerCase());
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/^-/, (match) => match.toLowerCase());
 }
 
 export function convertDashToCamelCase(input: string) {
-  if (!input) return '';
+  if (!input) return "";
 
   return input
-      .toLowerCase()
-      .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    .toLowerCase()
+    .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
+
+export const initializeSocket = () => {
+  if (!socket) {
+    socket = io(`${hostUrl}/home`, {
+      withCredentials: true,
+    });
+  }
+  return socket;
+};

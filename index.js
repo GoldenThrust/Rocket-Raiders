@@ -18,6 +18,7 @@ import gameRoutes from "./routes/game.js";
 import socketcookieParser from "./middlewares/socketCookieParser.js";
 import socketAuthenticateToken from "./middlewares/socketTokenManager.js";
 import rocketRoutes from "./routes/rocket.js";
+import Match from "./models/match.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -28,7 +29,7 @@ const options = {
   password: `Golden455256`
 };
 
- 
+
 const allowUrl = [`http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000'];
 
 
@@ -69,11 +70,17 @@ app.use('/logic', express.static(path.join(__dirname, "logic")));
 app.set("views", path.join(__dirname, "views"));
 app.use('/', express.static(path.join(__dirname, "views")));
 
-app.get('/game/:matchID', (req, res) => {
-  res.render('index', {
-    matchID: req.params.matchID,
-    user: req.user
-  });
+app.get('/game', async (req, res) => {
+  const matchID = req.query.matchid;
+
+  if (!matchID) return res.redirect('/');
+
+  const match = Match.findById(matchID);
+  if (!match) return res.redirect('/');
+
+  const valid = match.players.filter(player => player._id === req.user._id);
+  console.log(valid);
+  res.render('index');
 })
 
 app.use(express.static(path.join(__dirname, "build", "client")));
@@ -99,11 +106,11 @@ server.listen(PORT, () => {
   });
   const home = io.of('/home');
   const lobby = io.of('/lobby');
-  const ios = {home, lobby, io};
+  const ios = { home, lobby, io };
 
-  Object.values(ios).forEach((io)=> {
-      io.use(socketcookieParser);
-      io.use(socketAuthenticateToken);
+  Object.values(ios).forEach((io) => {
+    io.use(socketcookieParser);
+    io.use(socketAuthenticateToken);
   })
   websocket.getConnection(ios);
 
