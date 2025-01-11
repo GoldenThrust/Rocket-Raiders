@@ -1,19 +1,19 @@
 import { ctx, maxDistance } from "../utils/constant.js";
 import { cp } from "../main.js";
-import { checkCollision, damageAnimation, getRandomInt } from "../utils/function.js";
+import { checkCollision, damageAnimation, getGameId, getRandomInt } from "../utils/function.js";
 import socket from "../websocket.js";
 import Player, { playerSpawnLocation } from "./player.js";
 import { weapons } from "./weapons/utils.js";
 
 export default class User extends Player {
     constructor(ctx) {
-        const playerPosition = JSON.parse(sessionStorage.getItem(`playerPosition`));
-        let x = getRandomInt(maxDistance.w + 100, maxDistance.w - 100);
-        let y = getRandomInt(maxDistance.h + 100, maxDistance.h - 100);
+        const playerPosition = JSON.parse(sessionStorage.getItem(`playerPosition-${getGameId()}`));
+        let x = getRandomInt(-maxDistance.w + 100, maxDistance.w - 100);
+        let y = getRandomInt(-maxDistance.h + 100, maxDistance.h - 100);
         let angle = (Math.PI / 180) * getRandomInt(0, 360);
 
         if (!playerPosition || (playerPosition.time / 60000) > 15) {
-            sessionStorage.setItem(`playerPosition`, JSON.stringify({ x, y, angle, time: 0 }));
+            sessionStorage.setItem(`playerPosition-${getGameId()}`, JSON.stringify({ x, y, angle, time: 0 }));
         } else {
             x = playerPosition.x;
             y = playerPosition.y;
@@ -42,7 +42,7 @@ export default class User extends Player {
         const holdfire = () => {
             this.shoot = false;
         }
-    
+
         addEventListener('devicemotion', this.motionSensor);
 
         addEventListener('mousedown', shoot)
@@ -50,12 +50,12 @@ export default class User extends Player {
 
         addEventListener("touchstart", shoot)
         addEventListener("touchend", holdfire)
-        addEventListener("keydown", (event)=> {
+        addEventListener("keydown", (event) => {
             if (event.key === 'Enter' | event.key === ' ') {
                 shoot();
             }
         })
-        addEventListener("keyup", (event)=> {
+        addEventListener("keyup", (event) => {
             if (event.key === 'Enter' | event.key === ' ') {
                 holdfire();
             }
@@ -168,7 +168,7 @@ export default class User extends Player {
         this.y = Math.min(this.y, maxDistance.h);
         this.y = Math.max(this.y, -maxDistance.h);
 
-        sessionStorage.setItem(`playerPosition`, JSON.stringify({ x: this.x, y: this.y, angle: this.angle, date: t }))
+        sessionStorage.setItem(`playerPosition-${getGameId()}`, JSON.stringify({ x: this.x, y: this.y, angle: this.angle, date: t }))
 
         // if (this.weapons.length < 100) {
         // const wObj = new weapons[this.weaponId](this.username, this.x, this.y, this.angle, this.speed + this.gunSpeed, this.ctx)
@@ -181,17 +181,19 @@ export default class User extends Player {
 
 
             cp.forEach((cplayer) => {
-                if (checkCollision(cplayer, weapon)) {
-                    if (cplayer.live && !cplayer.weaponHit) {
-                        damageAnimation(cplayer);
-                        socket.emit('weaponHit', this.username, cplayer.username, i)
-                        this.weapons.splice(i, 1)
-                    }
+                if (cplayer.team != this.team && cplayer.team != 'neutral') {
+                    if (checkCollision(cplayer, weapon)) {
+                        if (cplayer.live && !cplayer.weaponHit) {
+                            damageAnimation(cplayer);
+                            socket.emit('weaponHit', this.username, cplayer.username, i)
+                            this.weapons.splice(i, 1)
+                        }
 
-                    if (cplayer.live === 0 && !cplayer.dead) {
-                        cplayer.dead = true;
-                        cplayer.weaponHit = true;
-                        socket.emit('destroy', this.username, cplayer.username);
+                        if (cplayer.live === 0 && !cplayer.dead) {
+                            cplayer.dead = true;
+                            cplayer.weaponHit = true;
+                            socket.emit('destroy', this.username, cplayer.username);
+                        }
                     }
                 }
             })

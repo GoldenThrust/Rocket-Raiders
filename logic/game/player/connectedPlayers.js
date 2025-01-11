@@ -2,9 +2,10 @@ import { lerp } from "../utils/function.js";
 import Player from "./player.js";
 
 export default class CPlayer extends Player {
-    constructor(x, y, angle, ctx, user) {
+    constructor(x, y, angle, team, ctx, user) {
         const { username, selectedRocket } = user;
         super(x, y, angle, ctx, username, selectedRocket.rocket, selectedRocket.flame, selectedRocket.speed, selectedRocket.range, selectedRocket.durability, selectedRocket.fireRate, selectedRocket.speciality);
+        this.team = team;
         this.px = x;
         this.py = y;
         this.pangle = angle;

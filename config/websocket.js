@@ -2,6 +2,7 @@ import { SocketAddress } from "net";
 import Match from "../models/match.js";
 import { redis } from "./db.js";
 import Map from "../models/map.js";
+import { balanceTeams } from "../utils/func.js";
 
 // TODO: make sure only initiator are allow to make some changes in backend.
 
@@ -49,8 +50,7 @@ class WebSocket {
                     const match = JSON.parse(await redis.hget('matches', gameId));
 
                     const players = [];
-                    let teams = [];
-                    const ratio = { red: 0, blue: 0 };
+                    let teams = { red: { name: 'red', players: [] }, blue: { name: 'blue', players: [] }, neutral: { name: 'neutral', players: [] } };
 
                     match.players.forEach((team, i) => {
                         team.forEach((player) => {
@@ -58,58 +58,35 @@ class WebSocket {
                                 players.push(player._id);
                                 if (match.players.length === 2) {
                                     if (i === 0) {
-                                        ratio.blue++;
-                                        teams.push({ name: 'blue', player: player._id });
+                                        teams.blue.players.push(player._id);
                                     } else {
-                                        ratio.red++;
-                                        teams.push({ name: 'red', player: player._id });
+                                        teams.red.players.push(player._id);
                                     }
                                 } else {
-                                    teams.push({ name: 'neutral', player: player._id });
+                                    teams.neutral.players.push(player._id);
                                 }
                             }
                         });
                     });
 
-                    if (ratio.red !== ratio.blue) {
-                        const totalPlayers = ratio.red + ratio.blue;
-                        const half = Math.floor(totalPlayers / 2);
 
-                        if (ratio.red > half) {
-                            const playersToMove = ratio.red - half;
-                            for (let i = 0; i < playersToMove; i++) {
-                                const player = teams.find(team => team.name === 'red');
-                                if (player) {
-                                    player.name = 'blue';
-                                    ratio.red--;
-                                    ratio.blue++;
-                                }
-                            }
-                        } else if (ratio.blue > half) {
-                            const playersToMove = ratio.blue - half;
-                            for (let i = 0; i < playersToMove; i++) {
-                                const player = teams.find(team => team.name === 'blue');
-                                if (player) {
-                                    player.name = 'red';
-                                    ratio.blue--;
-                                    ratio.red++;
-                                }
-                            }
+                    if (teams.neutral.players.length > 1) {
+                        const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id });
+                        this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
+                    } else {
+                        teams = balanceTeams(teams);
+                        if (teams.blue.players.length >= 1 || teams.red.players.length >= 1) {
+                            const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id });
+                            await newMatch.save();
+                            await redis.hdel('matches', gameId);
+                            this.ios.home.emit('matchDeleted', match.id);
+                            this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
+                        } else {
+                            socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
                         }
                     }
 
-                    if (ratio.red > 1 || ratio.blue > 1 || match.players.length === 1) {
-                        const newMatch = new Match({ players, teams, gameMode: match.gameMode, map: match.map._id })
-                        await newMatch.save();
-                        await redis.hdel('matches', gameId);
-                        this.ios.home.emit('matchDeleted', match.id)
-                        this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
-                    } else {
-                        console.log(ratio)
-                        socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
-                    }
                 });
-
 
                 socket.on('setGame', async (loc, oldLoc) => {
                     try {
@@ -195,10 +172,12 @@ class WebSocket {
                 socket.join(gameId);
 
                 socket.on('connected', (player) => {
+                    console.log('Connected from /game', player);
                     socket.to(gameId).emit('userConnected', player, socket.id, socket.user.toJSON());
                 });
 
                 socket.on('returnConnection', (player, id) => {
+                    console.log('returnConnection', player);
                     socket.to(id).emit('receivedConnection', player, socket.user.toJSON());
                 });
 

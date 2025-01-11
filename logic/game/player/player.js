@@ -1,11 +1,11 @@
-import { mapAR } from "../utils/constant.js";
-import { aspectRatio, getRandomInt } from "../utils/function.js";
+import { getGameId, getRandomInt } from "../utils/function.js";
 import SpriteAnimation from "../utils/spriteAnimation.js";
 import axios from "axios";
 
 
 export default class Player {
     constructor(x, y, angle, ctx, username = null, rocket = null, burst = null, speed = null, range = null, durability = null, fireRate = null, speciality) {
+        const gameData = JSON.parse(sessionStorage.getItem(`gameData-${getGameId()}`));
         if (!username || !rocket || !burst) {
             axios.get('/api/auth/verify').then((response) => {
                 const { username, selectedRocket } = response.data.response;
@@ -59,6 +59,7 @@ export default class Player {
         this.weapons = []
         this.lastUpdate = 0;
         this.explosion = null;
+        this.team = gameData?.name;
     }
 
     draw(t) {

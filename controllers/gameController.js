@@ -104,8 +104,20 @@ class gameController {
         const { gameId } = req.params;
         try {
             const match = await Match.findById(gameId).populate(['map']);
+            let teamName = null;
+            
+            outerLoop:
+            for (let team of match.teams) {
+                for (let teamPlayer of team.players) {
+                    if (teamPlayer._id.toString() === req.user._id.toString()) {
+                        teamName = team.name;
+                        break outerLoop;
+                    }
+                }
+            }
 
-            res.status(200).json({ status: 'OK', match: match.toJSON() });
+    
+            res.status(200).json({ status: 'OK', match: { ...match.toJSON(), team: teamName } });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: "Failed to getGame", error: error.message });

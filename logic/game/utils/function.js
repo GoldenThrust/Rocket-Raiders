@@ -163,7 +163,7 @@ export function getGameId() {
 }
 
 
-export function drawMiniMapPosition(player, color = 'green') {
+export function drawMiniMapPosition(player, color = 'springgreen') {
   const scaleDown = mapAR.scaleDown(maxDistance.w + player.x, maxDistance.h + player.y);
 
   ctx.fillStyle = color;

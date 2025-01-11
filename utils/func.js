@@ -33,3 +33,25 @@ export default function upload(folderPath) {
 
     return multer({ storage });
 }
+
+
+
+export function balanceTeams(teams) {
+    const totalPlayers = teams.red.players.length + teams.blue.players.length;
+    const half = Math.floor(totalPlayers / 2);
+  
+    while (Math.abs(teams.red.players.length - teams.blue.players.length) > 1) {
+      if (teams.red.players.length > half) {
+        // Move a player from red to blue
+        const player = teams.red.players.pop();
+        teams.blue.players.push(player);
+      } else if (teams.blue.players.length > half) {
+        // Move a player from blue to red
+        const player = teams.blue.players.pop();
+        teams.red.players.push(player);
+      }
+    }
+  
+    return teams;
+  }
+  

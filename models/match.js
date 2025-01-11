@@ -1,5 +1,4 @@
 import { model, Schema } from 'mongoose';
-import { v4 as uuid } from 'uuid';
 
 const MatchSchema = new Schema({
   players: [{ type: Schema.Types.ObjectId, ref: "User" }],

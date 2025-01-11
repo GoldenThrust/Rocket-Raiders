@@ -20,13 +20,15 @@ socket.on('userDisconnected', (username) => {
 })
 
 socket.on('userConnected', (cplayer, id, user) => {
-    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, ctx, user));
+    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y, cplayer.angle, cplayer.team, ctx, user));
+    console.log(player, 'connected');
     socket.emit('returnConnection', player, id)
     console.log('connection established', cplayer.username)
 })
 
 socket.on('receivedConnection', (cplayer, user) => {
-    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, ctx, user));
+    // console.log(cplayer.team, 'received connection');
+    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, cplayer.team, ctx, user));
 })
 
 

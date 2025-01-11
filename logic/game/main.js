@@ -22,8 +22,6 @@ addEventListener("contextmenu", () => { });
 export let cp = new Map();
 
 
-socket.emit("connected", player);
-
 const elem = document.documentElement;
 
 ctx.imageSmoothingEnabled = true;
@@ -54,11 +52,12 @@ function renderParticles() {
 
 let map = null;
 axios.get(`/api/game/get-game/${gameid}`).then((response) => {
-    sessionStorage.setItem('gameData', JSON.stringify(response?.data?.match));
+    player.team = response.data?.match?.team;
+    sessionStorage.setItem(`gameData-${gameid}`, JSON.stringify(response.data?.match));
     const image = new Image();
     image.src = `/${response.data.match.map.background}`;
-    console.log
     map = image;
+    socket.emit("connected", player);
 }).catch((error) => {
     console.error(error)
 })
@@ -106,7 +105,7 @@ function main(t) {
         ctx.strokeRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         ctx.fillRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         cp.forEach((cplayer) => {
-            drawMiniMapPosition(cplayer, 'red');
+            drawMiniMapPosition(cplayer, cplayer.team === 'neutral' || cplayer.team !== player.team ? 'red' : 'blue' );
         })
         drawMiniMapPosition(player);
         player.update(t);

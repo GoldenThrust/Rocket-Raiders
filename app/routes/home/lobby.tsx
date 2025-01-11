@@ -73,61 +73,61 @@ export default function Lobby() {
 
         const match = response.data?.match;
 
-        if (match.gameMode === "free-for-all" && match.connectPlayer >= 20) {
-          socket.disconnect();
-          navigate("/");
-        } else if (
-          match.gameMode === "team-deathmatch" &&
-          match.connectPlayer >= 12
-        ) {
-          socket.disconnect();
-          navigate("/");
+        if (shouldDisconnect(match)) {
+          handleDisconnection();
+          return;
         }
 
-        const playerData: Array<any> = match.players;
-        let loc = "0:0";
-        let skip = false;
+        const playerData = match.players;
+        const loc = findAvailableSlot(playerData);
 
-        for (let i = 0; i < playerData.length && !skip; i++) {
-          for (let j = 0; j < playerData[i].length; j++) {
-            if (
-              playerData[i][j] &&
-              Object.keys(playerData[i][j]).length === 0
-            ) {
-              if (!skip) {
-                playerData[i][j] = user;
-                loc = `${i}:${j}`;
-                setMyLoc(loc);
-                skip = true;
-                break;
-              }
-            } else if (playerData[i][j]?.username === user?.username) {
-              socketRef.current?.disconnect();
-              navigate("/");
-              return;
-            }
-          }
+        if (!loc) {
+          handleDisconnection();
+          return;
         }
 
+        setMyLoc(loc);
         socketRef.current?.emit("joinLobby");
         socketRef.current?.emit("setGame", loc, loc);
 
         setPlayers(playerData);
         const map = await getMaps();
 
-        if (match.map && Object.entries(match.map).length > 0) {
-          setSelectedMap(match.map);
-          socketRef.current?.emit("setMap", match.map);
-        } else {
-          setSelectedMap(map);
-          socketRef.current?.emit("setMap", map);
-        }
+        const selectedMap =
+          match.map && Object.entries(match.map).length > 0 ? match.map : map;
+        setSelectedMap(selectedMap);
+        socketRef.current?.emit("setMap", selectedMap);
 
         setMatch(match);
       } catch (error) {
         if (!axios.isCancel(error)) {
           console.error("Failed to fetch match data:", error);
           navigate("/");
+        }
+      }
+    };
+
+    const shouldDisconnect = (match: any) => {
+      return (
+        (match.gameMode === "free-for-all" && match.connectPlayer >= 20) ||
+        (match.gameMode === "team-deathmatch" && match.connectPlayer >= 12)
+      );
+    };
+
+    const handleDisconnection = () => {
+      socket.disconnect();
+      navigate("/");
+    };
+
+    const findAvailableSlot = (playerData: any) => {
+      for (let i = 0; i < playerData.length; i++) {
+        for (let j = 0; j < playerData[i].length; j++) {
+          if (!playerData[i][j] || Object.keys(playerData[i][j]).length === 0) {
+            playerData[i][j] = user;
+            return `${i}:${j}`;
+          } else if (playerData[i][j]?.username === user?.username) {
+            return null;
+          }
         }
       }
     };
