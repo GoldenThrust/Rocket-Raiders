@@ -1,19 +1,26 @@
 import Particles from "./particles/particles.js";
 import { player } from "./player/currentPlayer.js";
-import { distanceBetween, drawLive, getRandomInt } from "./utils/function.js";
-import { ctx, canvas } from "./utils/constant.js"
+import { distanceBetween, drawLive, drawMiniMapPosition, getGameId, getRandomInt } from "./utils/function.js";
+import { ctx, canvas, mapAR, maxDistance } from "./utils/constant.js"
 import socket from "./websocket.js";
+import axios from "axios";
 // window.addEventListener('click', () => {
 //     const audioCtx = new AudioContext();
 // })
-const scaleFactor = 0.8;
+const scaleFactor = 0.5;
 
-export let cp = []
+const gameid = getGameId();
 
-const bg = new Image();
-bg.src = '/imgs/star.png'
+const gameStarted = sessionStorage.getItem(gameid);
 
-ctx.drawImage(bg, 0, 0, 100, 100)
+if (!gameStarted) {
+    sessionStorage.setItem(gameid, true);
+}
+
+addEventListener("contextmenu", () => { });
+
+export let cp = new Map();
+
 
 socket.emit("connected", player);
 
@@ -45,30 +52,71 @@ function renderParticles() {
     });
 }
 
+let map = null;
+axios.get(`/api/game/get-game/${gameid}`).then((response) => {
+    sessionStorage.setItem('gameData', JSON.stringify(response?.data?.match));
+    const image = new Image();
+    image.src = `/${response.data.match.map.background}`;
+    console.log
+    map = image;
+}).catch((error) => {
+    console.error(error)
+})
+
 function main(t) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    canvas.width = innerWidth;
+    // mapCanvas.width = (maxDistance.w * 2);
+
+    if (Math.floor(t / 1000) < 10 && !gameStarted) {
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        const text = ctx.measureText('Game started in ' + (10 - Math.floor(t / 1000)) + 'seconds');
+        ctx.fillText('Game started in ' + (10 - Math.floor(t / 1000)) + ' seconds', (canvas.width / 2 - text.width / 2), canvas.height / 2);
+    } else if (Math.floor(t / 100) > 8 && Math.floor(t / 60000) < 15) {
+        ctx.strokeStyle = 'red';
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(scaleFactor, scaleFactor);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        ctx.translate(-player.x + canvas.width / 2, -player.y + canvas.height / 2);
 
 
-    ctx.strokeStyle = 'red';
-
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.scale(scaleFactor, scaleFactor);
-    ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    ctx.translate(-player.x + canvas.width / 2, -player.y + canvas.height / 2);
-    renderParticles();
-
-
-    player.draw(t);
-    player.update();
-
-    cp.forEach((player) => {
+        if (map) {
+            ctx.drawImage(
+                map, (-maxDistance.w), (-maxDistance.h), (maxDistance.w * 2), (maxDistance.h * 2)
+            );
+        }
+        if (!map)
+            renderParticles();
         player.draw(t);
-    })
+
+        cp.forEach((cplayer) => {
+            cplayer.draw(t);
+        })
 
 
-    ctx.restore();
- 
+        ctx.restore();
+
+
+
+        ctx.strokeStyle = 'grey';
+        ctx.fillStyle = '#111';
+        ctx.strokeRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
+        ctx.fillRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
+        cp.forEach((cplayer) => {
+            drawMiniMapPosition(cplayer, 'red');
+        })
+        drawMiniMapPosition(player);
+        player.update(t);
+    }
+
+    if (Math.floor(t / 60000) < 15) {
+        // endGame();
+    }
+
+
     drawLive(player)
 
     requestAnimationFrame(main);

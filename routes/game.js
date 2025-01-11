@@ -7,6 +7,7 @@ gameRoutes.get('/get-match/:matchId', gameController.getMatch);
 gameRoutes.get('/get-matches', gameController.getMatches);
 gameRoutes.get('/maps', gameController.getMaps);
 gameRoutes.get('/start-game/:gameId', gameController.startGame);
+gameRoutes.get('/get-game/:gameId', gameController.getGame);
 
 
 gameRoutes.get('/:gameMode', gameController.initiateGame);

@@ -1,49 +1,43 @@
 import { io } from "socket.io-client";
-import { ctx, userName } from "./utils/constant.js";
+import { ctx } from "./utils/constant.js";
 import CPlayer from "./player/connectedPlayers.js";
 import { player } from "./player/currentPlayer.js";
 import { weapons } from "./player/weapons/utils.js";
 import { cp } from "./main.js";
-import { damageAnimation } from "./utils/function.js";
+import { damageAnimation, getGameId } from "./utils/function.js";
 
 const socket = io("/", {
     withCredentials: true,
-    // query: {
-    //     username: userName
-    // },
+    query: {
+        gameId: getGameId()
+    },
 })
 
 
 socket.on('userDisconnected', (username) => {
+    cp.delete(username)
     console.log('connection disconnected', cp)
-    cp = cp.filter((cplayer) => cplayer.username !== username)
 })
 
-socket.on('userConnected', (cplayer, id) => {
-    cp.push(new CPlayer(cplayer.username, cplayer.x, cplayer.y, ctx));
-    console.log('connection established', cplayer.username)
+socket.on('userConnected', (cplayer, id, user) => {
+    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, ctx, user));
     socket.emit('returnConnection', player, id)
+    console.log('connection established', cplayer.username)
 })
 
-socket.on('receivedConnection', (cplayer) => {
-    cp.push(new CPlayer(cplayer.username, cplayer.x, cplayer.y, ctx));
+socket.on('receivedConnection', (cplayer, user) => {
+    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, ctx, user));
 })
 
 
-socket.on('playerMotion', (cplayer) => {
-    cp.map((p) => {
-        if (p.username === cplayer.username) {
-            p.update(cplayer.x, cplayer.y, cplayer.angle, cplayer.nitroPower)
-        }
-    })
+socket.on('playerMotion', (username, x, y, angle, nitroPower) => {
+    const player = cp.get(username);
+    player?.update(x, y, angle, nitroPower)
 })
 
 socket.on('shootWeapon', (username, weaponId, weapon) => {
-    cp.map((p) => {
-        if (p.username === username) {
-            p.weapons.push(new weapons[weaponId](username, weapon.x, weapon.y, weapon.angle, weapon.speed, p.ctx, 'brick'))
-        }
-    })
+    const player = cp.get(username);
+    player.weapons.push(new weapons[weaponId](username, weapon.x, weapon.y, weapon.angle, weapon.speed, player.ctx, 'brick'))
 })
 
 socket.on('weaponHit', (shooter, shootee, gunIndex) => {
@@ -52,15 +46,13 @@ socket.on('weaponHit', (shooter, shootee, gunIndex) => {
         damageAnimation(player)
     }
 
-    cp.map((p) => {
-        if (p.username === shooter) {
-            p.weapons.splice(gunIndex, 1)
-        }
+    const shooterPlayer = cp.get(shooter);
+    if (shooterPlayer)
+        shooterPlayer?.weapons?.splice(gunIndex, 1)
 
-        if (p.username === shootee) {
-            damageAnimation(player)
-        }
-    })
+    const shooteePlayer = cp.get(shootee);
+    if (shooteePlayer)
+        damageAnimation(shooteePlayer)
 })
 
 socket.on('destroy', (shooter, shootee) => {
@@ -69,12 +61,11 @@ socket.on('destroy', (shooter, shootee) => {
         player.weaponHit = true;
     }
 
-    cp.map((p) => {
-        if (p.username === shootee) {
-            p.dead = true;
-            p.weaponHit = true;
-        }
-    })
+    const shooteePlayer = cp.get(shootee);
+    if (shooteePlayer) {
+        shooteePlayer.dead = true;
+        shooteePlayer.weaponHit = true;
+    }
 })
 
 export default socket;

@@ -71,32 +71,35 @@ app.set("views", path.join(__dirname, "views"));
 app.use('/', express.static(path.join(__dirname, "views")));
 
 app.get('/game/', async (req, res) => {
-  const gameId = req.query.gameid;
+  try {
+    const gameId = req.query.gameid;
 
-  if (!gameId) return res.redirect('/');
+    if (!gameId) return res.redirect('/');
 
-  const match = await Match.findById(gameId);
-  if (!match || match.endTime) return res.redirect('/');
-  const players = match.players;
+    const match = await Match.findById(gameId).populate(['map']);
+    if (!match || match.endTime) return res.redirect('/');
+    const players = match.players;
 
-  let auth = false;
-  for (let i = 0; i < players.length; i++) {
-    if (players[i]._id.toString() === req.user._id.toString()) {
-      auth = true;
-      console.log('player found')
-      break;
+    let auth = false;
+    for (let i = 0; i < players.length; i++) {
+      if (players[i]._id.toString() === req.user._id.toString()) {
+        auth = true;
+        console.log('player found')
+        break;
+      }
     }
+
+    if (!auth) return res.redirect('/');
+
+    res.render('index');
+  } catch (err) {
+    console.error(err);
+    return res.redirect('/');
   }
-
-  console.log('starting game', auth);
-
-  if (!auth) return res.redirect('/');
-
-  res.render('index');
 })
 
 app.use(express.static(path.join(__dirname, "build", "client")));
-app.get("*", (req, res) => {
+app.get("*", (_, res) => {
   res.sendFile(path.join(__dirname, "build", "client", "index.html"));
 });
 

@@ -1,4 +1,4 @@
-import { ctx } from "./constant.js";
+import { ctx, mapAR, maxDistance } from "./constant.js";
 
 
 export function getRandomInt(min, max) {
@@ -133,7 +133,7 @@ export function damageAnimation(player) {
     player.weaponHit = false;
     player.damage = false;
     clearInterval(interVal);
-  }, 3000)
+  }, 300)
 }
 
 
@@ -149,4 +149,25 @@ export function getFrameDuration(timestamp, lastUpdate, fps) {
   }
 
   return null;
+}
+
+
+export function getGameId() {
+  const queryString = window.location.search;
+
+  const urlParams = new URLSearchParams(queryString);
+
+  const gameid = urlParams.get('gameid');
+
+  return gameid ? gameid : null;
+}
+
+
+export function drawMiniMapPosition(player, color = 'green') {
+  const scaleDown = mapAR.scaleDown(maxDistance.w + player.x, maxDistance.h + player.y);
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(scaleDown.x, scaleDown.y, 2, 0, Math.PI * 2);
+  ctx.fill();
 }

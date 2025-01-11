@@ -1,29 +1,58 @@
+import { mapAR } from "../utils/constant.js";
+import { aspectRatio, getRandomInt } from "../utils/function.js";
 import SpriteAnimation from "../utils/spriteAnimation.js";
-import { drawSpriteFrame, getFrameDuration, getRandomInt, } from "../utils/function.js";
-import imgData from "./playerImg.js";
-
-export const playerSpawnLocation = () => [getRandomInt(-100, 100), getRandomInt(-100, 100)];
-// export const player = new User(userName, getRandomInt(-maxDistance + 100, maxDistance - 100), getRandomInt(-maxDistance + 100, maxDistance - 100), ctx);
+import axios from "axios";
 
 
 export default class Player {
-    constructor(username, x, y, ctx) {
-        this.username = username;
-        this.x = x; // change to internal
+    constructor(x, y, angle, ctx, username = null, rocket = null, burst = null, speed = null, range = null, durability = null, fireRate = null, speciality) {
+        if (!username || !rocket || !burst) {
+            axios.get('/api/auth/verify').then((response) => {
+                const { username, selectedRocket } = response.data.response;
+                let rocketImg = new Image();
+                rocketImg.src = `/${selectedRocket.rocket}`;
+                let burstImg = new Image();
+                burstImg.src = `/${selectedRocket.flame}`;
+                this.username = username;
+                this.player = rocketImg;
+                this.nitro = burstImg;
+
+                this.maxSpeed = selectedRocket.speed;
+                this.range = selectedRocket.range;
+                this.live = selectedRocket.durability;
+                this.fireRate = selectedRocket.fireRate;
+                this.speciality = selectedRocket.speciality;
+            }).catch((error) => {
+                console.log(error);
+            });
+        } else {
+            let rocketImg = new Image();
+            rocketImg.src = `/${rocket}`;
+            let burstImg = new Image();
+            burstImg.src = `/${burst}`;
+            this.username = username;
+            this.player = rocketImg;
+            this.nitro = burstImg;
+
+            this.maxSpeed = speed;
+            this.range = range;
+            this.live = durability;
+            this.fireRate = fireRate;
+            this.speciality = speciality;
+        }
+
+
+        this.x = x;
         this.y = y;
         this.w = 35;
         this.h = 50;
-        this.live = 2;
         this.dead = false;
         this.weaponHit = false;
         this.damage = false;
         this.ctx = ctx;
-        this.player = imgData[0];
-        this.nitro = imgData[1];
         this.nitroPower = 0;
-        this.angle = (Math.PI / 180) * getRandomInt(0, 360);
+        this.angle = angle;
         this.speed = 0;
-        this.maxSpeed = 5;
         this.gunSpeed = 5;
         this.friction = 0.1;
         this.weaponId = 'gun';
@@ -57,6 +86,7 @@ export default class Player {
             console.log(this.explosion.state, this.explosion.numberOfInterations);
         }
 
+
         this.ctx.restore();
 
         this.weapons.forEach((weapon) => {
@@ -74,7 +104,7 @@ export default class Player {
         setTimeout(() => {
             this.dead = false;
             this.weaponHit = false;
-        }, 5000)
+        }, 100)
     }
 
     getVertices() {

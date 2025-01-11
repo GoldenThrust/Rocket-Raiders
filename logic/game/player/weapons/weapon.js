@@ -1,5 +1,3 @@
-import { player } from "../currentPlayer.js";
-
 export default class Weapon {
     constructor(id, x, y, w, h, angle, speed, ctx, color) {
         this.id = id;

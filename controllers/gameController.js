@@ -18,7 +18,7 @@ class gameController {
                 map: {},
                 connectPlayer: 0
             }
-        
+
             await redis.hset('matches', id, JSON.stringify(match), 10 * 60)
             res.status(201).json({
                 message: "Game initiated successfully",
@@ -97,6 +97,18 @@ class gameController {
                 message: "Failed to retrieve active matches",
                 error: error.message,
             });
+        }
+    }
+
+    async getGame(req, res) {
+        const { gameId } = req.params;
+        try {
+            const match = await Match.findById(gameId).populate(['map']);
+
+            res.status(200).json({ status: 'OK', match: match.toJSON() });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: "Failed to getGame", error: error.message });
         }
     }
 

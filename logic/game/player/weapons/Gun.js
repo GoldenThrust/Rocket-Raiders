@@ -1,6 +1,5 @@
 import Weapon from "./weapon.js";
 import { distanceBetween } from "../../utils/function.js";
-import { player } from "../currentPlayer.js";
 
 export default class Gun extends Weapon {
     constructor(id, x, y, angle, speed, ctx, color = 'pink') {
@@ -27,11 +26,11 @@ export default class Gun extends Weapon {
         this.ctx.restore();
     }
 
-    update() {
+    update(range) {
         this.x -= this.speed * Math.sin(this.angle);
         this.y -= this.speed * Math.cos(this.angle);
         
-        if(distanceBetween(this, { x: this.initX, y: this.initY })[0] > 2000) {
+        if(distanceBetween(this, { x: this.initX, y: this.initY })[0] > range) {
             return true;
         }
     }

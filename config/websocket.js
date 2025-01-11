@@ -8,7 +8,6 @@ import Map from "../models/map.js";
 class WebSocket {
     constructor() {
         this.ios = null;
-        this.socket = null;
         this.connectionPromise = null;
     }
 
@@ -33,7 +32,6 @@ class WebSocket {
 
             this.ios.lobby.on('connection', async (socket) => {
                 const gameId = socket.handshake.query.gameId;
-                console.log(gameId);
                 socket.join(gameId);
 
                 socket.on('joinLobby', async () => {
@@ -193,34 +191,35 @@ class WebSocket {
             });
 
             this.ios.io.on("connection", async (socket) => {
-                this.socket = socket;
+                const gameId = socket.handshake.query.gameId;
+                socket.join(gameId);
 
                 socket.on('connected', (player) => {
-                    socket.broadcast.emit('userConnected', player, socket.id);
+                    socket.to(gameId).emit('userConnected', player, socket.id, socket.user.toJSON());
                 });
 
                 socket.on('returnConnection', (player, id) => {
-                    socket.to(id).emit('receivedConnection', player);
+                    socket.to(id).emit('receivedConnection', player, socket.user.toJSON());
                 });
 
                 socket.on("disconnect", () => {
                     console.log('Disconnected');
                 });
 
-                socket.on('onmotion', (player) => {
-                    socket.broadcast.emit('playerMotion', player);
+                socket.on('onmotion', (username, x, y, angle, nitroPower) => {
+                    socket.to(gameId).emit('playerMotion', username, x, y, angle, nitroPower);
                 });
 
                 socket.on('onShoot', (username, weaponId, weapon) => {
-                    socket.broadcast.emit('shootWeapon', username, weaponId, weapon);
+                    socket.to(gameId).emit('shootWeapon', username, weaponId, weapon);
                 });
 
                 socket.on('weaponHit', (shooter, shootee, gunIndex) => {
-                    socket.broadcast.emit('weaponHit', shooter, shootee, gunIndex);
+                    socket.to(gameId).emit('weaponHit', shooter, shootee, gunIndex);
                 });
 
                 socket.on('destroy', (shooter, shootee) => {
-                    socket.broadcast.emit('destroy', shooter, shootee);
+                    socket.to(gameId).emit('destroy', shooter, shootee);
                 });
 
                 resolve(true);

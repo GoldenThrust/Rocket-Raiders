@@ -2,12 +2,13 @@ import { lerp } from "../utils/function.js";
 import Player from "./player.js";
 
 export default class CPlayer extends Player {
-    constructor(username, x, y, ctx) {
-        super(username, x, y, ctx);
+    constructor(x, y, angle, ctx, user) {
+        const { username, selectedRocket } = user;
+        super(x, y, angle, ctx, username, selectedRocket.rocket, selectedRocket.flame, selectedRocket.speed, selectedRocket.range, selectedRocket.durability, selectedRocket.fireRate, selectedRocket.speciality);
         this.px = x;
         this.py = y;
-        this.pangle = (Math.PI / 180) * 270;
-        this._addEventListener = () => {};
+        this.pangle = angle;
+        this._addEventListener = () => { };
     }
 
     update(x, y, angle, nitroPower) {
@@ -24,7 +25,7 @@ export default class CPlayer extends Player {
         this.angle = lerp(this.pangle, angle, t);
         this.pangle = angle;
 
-        
+
 
         this.weapons.forEach((weapon, i) => {
             const update = weapon.update()
