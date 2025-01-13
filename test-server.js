@@ -1,5 +1,6 @@
 import express from "express";
-import { createServer } from "http";
+// import { createServer } from "http";
+import { createServer } from "https";
 import path from "path";
 import cors from "cors";
 import "dotenv/config";
@@ -7,6 +8,7 @@ import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import { fileURLToPath } from "url";
+import fs from "fs";
 import websocket from "./config/websocket.js";
 import mongodb, { redis } from "./config/db.js";
 import authRoutes from "./routes/authentication.js";
@@ -21,13 +23,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
+const options = {
+  key: fs.readFileSync(`C:\\Users\\adeni\\Documents\\Cert\\localhost.key`),
+  cert: fs.readFileSync(`C:\\Users\\adeni\\Documents\\Cert\\localhost.crt`),
+  password: `Golden455256`
+};
 
 
-const allowUrl = [`http://localhost:3000`, `http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000', `${process.env.VITE_HOST_URL}`, `${process.env.HOST_URL}`];
+const allowUrl = [`http://localhost:3000`, `http://localhost:5173`, `http://${getIPAddress()}:5173`, `https://${getIPAddress()}:${PORT}`, 'https://localhost:3000'];
 
 
 const app = express();
-const server = createServer(app);
+const server = createServer(options, app);
 const optionalAuthRoutes = [
   // /^\/$/, // Root route
   /^\/favicon\.ico.*$/, // Favicon

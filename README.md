@@ -56,14 +56,12 @@ Rocket Raiders is a fast-paced multiplayer space shooter game where players enga
    ```env
    DEV=true
    PORT=3001
-   REDIS_HOST=127.0.0.1
-   REDIS_PASSWORD=your_redis_password
-   REDIS_PORT=6379
+   REDIS_URL=127.0.0.1:6379
    MONGODB_URI='mongodb://127.0.0.1:27017/rocket-raiders'
    COOKIE_SECRET=your_cookie_secret
    JWT_SECRET=your_jwt_secret
-   VITE_HOST_URL=http://localhost:3001
-   HOST_URL=http://localhost:3001
+   VITE_HOST_URL=https://localhost:3001
+   HOST_URL=https://localhost:3001
    ```
 5. Run the following commands to build and serve the application:
    ```bash

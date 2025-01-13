@@ -3,13 +3,10 @@ import Match from './models/match.js';
 import websocket from './config/websocket.js';
 import { DEV } from './utils/constants.js';
 
-const options = DEV ? {
-  host: 'localhost',
-  port: 6379,
-}: {
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-  password: process.env.REDIS_PASSWORD
+const options = {
+  redis: {
+    url: process.env.REDIS_URL
+  },
 }
 
 export const matchEndQueue = new Queue('matchEndQueue', options);

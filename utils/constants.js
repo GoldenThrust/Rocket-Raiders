@@ -5,13 +5,7 @@ import path from "path";
 
 export const DEV = process.env.DEV === 'true' ? true : false;
 
-export const redisOptions = DEV ? '127.0.0.1:6379' : {
-  password: process.env.REDIS_PASSWORD,
-  socket: {
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-  },
-}
+export const redisOptions = { url: process.env.REDIS_URL };
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __rootDir = path.dirname(path.dirname(__filename))
