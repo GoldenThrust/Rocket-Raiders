@@ -71,6 +71,8 @@ Rocket Raiders is a fast-paced multiplayer space shooter game where players enga
    ```
 6. Open your browser and go to `http://localhost:3001` to play the game.
 
+> Note: Always use npm run start-server when not running in production or https server. 
+
 
 ## Scripts
 

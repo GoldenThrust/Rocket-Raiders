@@ -8,7 +8,7 @@
     "start": "serve .\\build\\client",
     "typecheck": "react-router typegen && tsc",
     "server": "node index.js && worker.js",
-    "start-server": "nodemon index.js",
+    "start-server": "nodemon test-server.js",
     "pack": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
