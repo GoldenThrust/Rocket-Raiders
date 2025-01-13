@@ -62,14 +62,23 @@ Rocket Raiders is a fast-paced multiplayer space shooter game where players enga
    JWT_SECRET=your_jwt_secret
    VITE_HOST_URL=https://localhost:3001
    HOST_URL=https://localhost:3001
+   EMAIL_HOST=smtp.mailtrap.io
+   EMAIL_PORT=587
+   EMAIL_USER=your_email_user
+   EMAIL_PASS=your_email_pass
    ```
-5. Run the following commands to build and serve the application:
+5. Set up email service for user authentication.
+ This configuration is required to send verification emails, password reset emails, etc.
+ You can use services like MailDev, [Mailtrap](https://mailtrap.io/) or [SendGrid](https://sendgrid.com/en-us).
+ Make sure to replace the placeholder values in .env with your email service credentials.
+6. Run the following commands to build and serve the application:
    ```bash
    npm run pack
    npm run build
    npm run server
    ```
-6. Open your browser and go to `http://localhost:3001` to play the game.
+   
+7. Open your browser and go to `http://localhost:3001` to play the game.
 
 > Note: Always use npm run start-server when not running in production or https server. 
 
