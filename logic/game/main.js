@@ -62,6 +62,7 @@ axios.get(`/api/game/get-game/${gameid}`).then((response) => {
     console.error(error)
 })
 
+
 function main(t) {
     // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     canvas.width = innerWidth;
@@ -105,16 +106,11 @@ function main(t) {
         ctx.strokeRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         ctx.fillRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         cp.forEach((cplayer) => {
-            drawMiniMapPosition(cplayer, cplayer.team === 'neutral' || cplayer.team !== player.team ? 'red' : 'blue' );
+            drawMiniMapPosition(cplayer, cplayer.team === 'neutral' || cplayer.team !== player.team ? 'red' : 'blue');
         })
         drawMiniMapPosition(player);
         player.update(t);
     }
-
-    if (Math.floor(t / 60000) < 15) {
-        // endGame();
-    }
-
 
     drawLive(player)
 
@@ -133,36 +129,30 @@ addEventListener('resize', () => {
 })
 
 
-function goFullscreen() {
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-    }
-}
-
-function exitFullscreen() {
-    if (document.exitFullscreen) {
-        document.exitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-    } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+function setFullScreen() {
+    if (document.fullscreenElement === null) {
+        document.documentElement.requestFullscreen().then((response) => {
+            if (screen.orientation && screen.orientation.lock) {
+                if (
+                    ["portrait", "portrait-primary"].includes(screen.orientation.type)
+                ) {
+                    console.log(screen.orientation.type);
+                    screen.orientation
+                        .lock("landscape")
+                        .then(() => {
+                            console.log("Switched to landscape orientation.");
+                        })
+                        .catch((error) => {
+                            console.error("Orientation lock failed:", error);
+                        });
+                }
+            } else {
+                alert("Screen Orientation API is not supported on this browser.");
+            }
+        });
     }
 }
 
 document.onclick = () => {
-    if (document.fullscreenElement || document.mozFullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
-        console.log('Exit Fullscreen')
-        // exitFullscreen();
-    } else {
-        console.log('Go Fullscreen')
-        // goFullscreen();
-    }
+    // setFullScreen();
 }

@@ -1,12 +1,20 @@
-import mongodb, { redis } from "./config/db.js";
-import Rocket from "./models/rocket.js";
+import Queue from 'bull';
+import Match from './models/match.js';
+import websocket from './config/websocket.js';
 
-mongodb.run().then(() => {
-    redis.run().then(async () => {
-        const rockets = await Rocket.find({ name: { $ne: 'Rocket' } });
-        for (const [i, rocket] of rockets.entries()) {
-            rocket.price = Math.ceil(Math.random() * 10) * (i + 10);
-            await rocket.save();
-        }
-    });
+
+export const matchEndQueue = new Queue('matchEndQueue');
+
+matchEndQueue.process(async (job) => {
+  const { matchId } = job.data;
+  try {
+    const match = await Match.findById(matchId);
+    if (match) {
+        websocket.gameEnd(match.id.toString());
+    }
+  } catch (error) {
+    console.error(`Error processing match end for match ${matchId}:`, error);
+  }
 });
+
+console.log('Match end worker is running.');

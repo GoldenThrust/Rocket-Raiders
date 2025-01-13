@@ -77,14 +77,14 @@ app.get('/game/', async (req, res) => {
     if (!gameId) return res.redirect('/');
 
     const match = await Match.findById(gameId).populate(['map']);
-    if (!match || match.endTime) return res.redirect('/');
+    const now = new Date();
+    if (!match || (match.endTime && match.endTime < now)) return res.redirect('/');
     const players = match.players;
 
     let auth = false;
     for (let i = 0; i < players.length; i++) {
       if (players[i]._id.toString() === req.user._id.toString()) {
         auth = true;
-        console.log('player found')
         break;
       }
     }

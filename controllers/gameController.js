@@ -2,6 +2,7 @@ import { redis } from "../config/db.js";
 import Map from "../models/map.js";
 import Match from "../models/match.js";
 import { v7 as uuid } from "uuid";
+import { matchEndQueue } from "../worker.js";
 
 
 class gameController {
@@ -37,7 +38,15 @@ class gameController {
             const user = req.user;
             const gameMode = req.params.gameMode;
             const match = new Match({ gameMode, players: [user] });
+            const endTime = new Date(match.startTime);
+            endTime.setMinutes(endTime.getMinutes() + 10);
+            match.endTime = endTime;
             await match.save();
+
+            matchEndQueue.add(
+                { matchId: match._id.toString() },
+                { delay: 10 * 60 * 1000 }
+              );
 
             res.status(201).json({
                 message: "Game initiated successfully",
@@ -105,7 +114,7 @@ class gameController {
         try {
             const match = await Match.findById(gameId).populate(['map']);
             let teamName = null;
-            
+
             outerLoop:
             for (let team of match.teams) {
                 for (let teamPlayer of team.players) {
@@ -116,7 +125,7 @@ class gameController {
                 }
             }
 
-    
+
             res.status(200).json({ status: 'OK', match: { ...match.toJSON(), team: teamName } });
         } catch (error) {
             console.error(error);

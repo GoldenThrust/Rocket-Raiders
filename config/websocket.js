@@ -47,45 +47,78 @@ class WebSocket {
                 })
 
                 socket.on('startGame', async () => {
-                    const match = JSON.parse(await redis.hget('matches', gameId));
+                    try {
+                        const match = JSON.parse(await redis.hget('matches', gameId));
 
-                    const players = [];
-                    let teams = { red: { name: 'red', players: [] }, blue: { name: 'blue', players: [] }, neutral: { name: 'neutral', players: [] } };
+                        const players = [];
+                        let stats = [];
+                        let teams = { red: { name: 'red', players: [] }, blue: { name: 'blue', players: [] }, neutral: { name: 'neutral', players: [] } };
 
-                    match.players.forEach((team, i) => {
-                        team.forEach((player) => {
-                            if (player && Object.entries(player).length > 0) {
-                                players.push(player._id);
-                                if (match.players.length === 2) {
-                                    if (i === 0) {
-                                        teams.blue.players.push(player._id);
+                        match.players.forEach((team, i) => {
+                            team.forEach((player) => {
+                                if (player && Object.entries(player).length > 0) {
+                                    players.push(player._id);
+                                    if (match.players.length === 2) {
+                                        if (i === 0) {
+                                            stats.push({ player: player._id, kills: 0, deaths: 0, team: 'blue' });
+                                            teams.blue.players.push(player._id);
+                                        } else {
+                                            stats.push({ player: player._id, kills: 0, deaths: 0, team: 'red' });
+                                            teams.red.players.push(player._id);
+                                        }
                                     } else {
-                                        teams.red.players.push(player._id);
+                                        stats.push({ player: player._id, kills: 0, deaths: 0, team: 'neutral' });
+                                        teams.neutral.players.push(player._id);
                                     }
-                                } else {
-                                    teams.neutral.players.push(player._id);
                                 }
-                            }
+                            });
                         });
-                    });
 
 
-                    if (teams.neutral.players.length > 1) {
-                        const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id });
-                        this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
-                    } else {
-                        teams = balanceTeams(teams);
-                        if (teams.blue.players.length >= 1 || teams.red.players.length >= 1) {
-                            const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id });
+                        if (teams.neutral.players.length > 1) {
+                            const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
                             await newMatch.save();
-                            await redis.hdel('matches', gameId);
-                            this.ios.home.emit('matchDeleted', match.id);
+
+                            const populatedMatch = await newMatch.populate(['players'])
+
+                            populatedMatch.players.forEach((player) => {
+                                player.stats.matchesPlayed++;
+                                player.save();
+                            });
                             this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
                         } else {
-                            socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
-                        }
-                    }
+                            teams = balanceTeams(teams);
+                            if (teams.blue.players.length >= 1 || teams.red.players.length >= 1) {
+                                stats = [];
+                                teams.blue.players.forEach((player) => {
+                                    stats.push({ player, kills: 0, deaths: 0, team: 'blue' });
+                                });
+                                teams.red.players.forEach((player) => {
+                                    stats.push({ player, kills: 0, deaths: 0, team: 'red' });
+                                });
+                                console.log(stats);
 
+                                const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
+                                await newMatch.save();
+                                const populatedMatch = await newMatch.populate(['players'])
+
+
+                                populatedMatch.players.forEach((player) => {
+                                    player.stats.matchesPlayed++;
+                                    player.save();
+                                });
+                                await redis.hdel('matches', gameId);
+                                this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
+                            } else {
+                                socket.emit('gameStartFailed', 'Unable to start game player not sufficient');
+                            }
+                        }
+
+                        this.ios.home.emit('matchDeleted', match.id);
+                    } catch (error) {
+                        console.error('Error starting game:', error);
+                        socket.emit('gameStartFailed', 'An error occurred while starting the game.');
+                    }
                 });
 
                 socket.on('setGame', async (loc, oldLoc) => {
@@ -172,12 +205,10 @@ class WebSocket {
                 socket.join(gameId);
 
                 socket.on('connected', (player) => {
-                    console.log('Connected from /game', player);
                     socket.to(gameId).emit('userConnected', player, socket.id, socket.user.toJSON());
                 });
 
                 socket.on('returnConnection', (player, id) => {
-                    console.log('returnConnection', player);
                     socket.to(id).emit('receivedConnection', player, socket.user.toJSON());
                 });
 
@@ -197,15 +228,49 @@ class WebSocket {
                     socket.to(gameId).emit('weaponHit', shooter, shootee, gunIndex);
                 });
 
-                socket.on('destroy', (shooter, shootee) => {
-                    socket.to(gameId).emit('destroy', shooter, shootee);
+                socket.on('destroy', async (shooter, shootee) => {
+                    try {
+                        const match = await Match.findById(gameId).populate('stats.player');
+
+                        for (let stat of match.stats) {
+                            if (stat.player.username === shooter.username) {
+                                stat.kills++;
+                                stat.player.stats.totalKills++;
+                                await stat.player.save();
+                            }
+                            if (stat.player.username === shootee.username) {
+                                stat.deaths++;
+                                stat.player.stats.totalDeaths++;
+                                await stat.player.save();
+                            }
+                        }
+
+                        if (match.gameMode !== 'free-for-all') {
+                            match.teams.forEach((team) => {
+                                if (team.name === shooter.team) {
+                                    team.score++;
+                                }
+                            });
+                        }
+
+                        await match.save();
+                        socket.to(gameId).emit('destroy', shooter.username, shootee.username);
+                    } catch (error) {
+                        console.error('Error handling destroy event:', error);
+                    }
                 });
+
+
 
                 resolve(true);
             });
         });
 
         return this.connectionPromise;
+    }
+
+    gameEnd(gameId) {
+        this.ios.io.to(gameId).emit('gameEnd');
     }
 
     async getMatches() {

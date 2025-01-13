@@ -1,3 +1,4 @@
+import { maxDistance } from "../utils/constant.js";
 import { getGameId, getRandomInt } from "../utils/function.js";
 import SpriteAnimation from "../utils/spriteAnimation.js";
 import axios from "axios";
@@ -19,6 +20,7 @@ export default class Player {
 
                 this.maxSpeed = selectedRocket.speed;
                 this.range = selectedRocket.range;
+                this.durability = selectedRocket.durability;
                 this.live = selectedRocket.durability;
                 this.fireRate = selectedRocket.fireRate;
                 this.speciality = selectedRocket.speciality;
@@ -36,6 +38,7 @@ export default class Player {
 
             this.maxSpeed = speed;
             this.range = range;
+            this.durability = durability;
             this.live = durability;
             this.fireRate = fireRate;
             this.speciality = speciality;
@@ -59,6 +62,9 @@ export default class Player {
         this.weapons = []
         this.lastUpdate = 0;
         this.explosion = null;
+        const eximg = new Image();
+        eximg.src = '/assets/imgs/explosion.png';
+        this.explosionSprite = eximg;
         this.team = gameData?.name;
     }
 
@@ -84,7 +90,7 @@ export default class Player {
 
         if (this.explosion) {
             this.explosion.animate(t);
-            console.log(this.explosion.state, this.explosion.numberOfInterations);
+            console.log(this.explosion.state, this.explosion.numberOfIterations);
         }
 
 
@@ -97,15 +103,14 @@ export default class Player {
 
     respawn() {
         this.explosion = null;
-        const loc = playerSpawnLocation();
         this.angle = (Math.PI / 180) * getRandomInt(0, 360);
-        this.x = loc[0];
-        this.y = loc[1];
+        this.x = getRandomInt(-maxDistance.w + 100, maxDistance.w - 100);
+        this.y = getRandomInt(-maxDistance.h + 100, maxDistance.h - 100);
 
         setTimeout(() => {
             this.dead = false;
             this.weaponHit = false;
-        }, 100)
+        }, 10000)
     }
 
     getVertices() {
@@ -158,8 +163,8 @@ export default class Player {
 
     updateState() {
         if (!this.live) {
-            this.explosion = new SpriteAnimation(imgData[2], -this.w * 1.5, -this.h * 3.2, 50, 100, 2, 2, 1, 6, 30, 1);
-            this.live = 2;
+            this.explosion = new SpriteAnimation(this.explosionSprite, -this.w * 2, -this.h * 2, 80, 80, 2, 2, 2, 3, 12, 1);
+            this.live = this.durability;
         }
 
         if (this.explosion && this.explosion.state === 'paused') {

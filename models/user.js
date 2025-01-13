@@ -23,7 +23,7 @@ const UserSchema = new Schema({
     totalDeaths: { type: Number, default: 0 },
     matchesPlayed: { type: Number, default: 0 },
     matchesWon: { type: Number, default: 0 },
-    highestScore: { type: Number, default: 0 },
+    // highestScore: { type: Number, default: 0 },
     rank: { type: String, enum: ['bronze', 'silver', 'gold', 'platinum', 'emerald', 'diamond'], default: 'bronze' }
   },
   active: { type: Boolean, default: false },

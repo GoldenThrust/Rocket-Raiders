@@ -28,7 +28,7 @@ socket.on('userConnected', (cplayer, id, user) => {
 
 socket.on('receivedConnection', (cplayer, user) => {
     // console.log(cplayer.team, 'received connection');
-    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y,  cplayer.angle, cplayer.team, ctx, user));
+    cp.set(user.username, new CPlayer(cplayer.x, cplayer.y, cplayer.angle, cplayer.team, ctx, user));
 })
 
 
@@ -68,6 +68,10 @@ socket.on('destroy', (shooter, shootee) => {
         shooteePlayer.dead = true;
         shooteePlayer.weaponHit = true;
     }
+})
+
+socket.on('gameEnd', ()=> {
+    window.location.href = `/game/end-game/${getGameId()}`;
 })
 
 export default socket;

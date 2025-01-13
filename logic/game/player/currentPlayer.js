@@ -2,7 +2,7 @@ import { ctx, maxDistance } from "../utils/constant.js";
 import { cp } from "../main.js";
 import { checkCollision, damageAnimation, getGameId, getRandomInt } from "../utils/function.js";
 import socket from "../websocket.js";
-import Player, { playerSpawnLocation } from "./player.js";
+import Player from "./player.js";
 import { weapons } from "./weapons/utils.js";
 
 export default class User extends Player {
@@ -192,7 +192,7 @@ export default class User extends Player {
                         if (cplayer.live === 0 && !cplayer.dead) {
                             cplayer.dead = true;
                             cplayer.weaponHit = true;
-                            socket.emit('destroy', this.username, cplayer.username);
+                            socket.emit('destroy', this, cplayer);
                         }
                     }
                 }
