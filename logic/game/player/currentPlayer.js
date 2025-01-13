@@ -181,7 +181,7 @@ export default class User extends Player {
 
 
             cp.forEach((cplayer) => {
-                if (cplayer.team != this.team && cplayer.team != 'neutral') {
+                if (cplayer.team != this.team || cplayer.team === 'neutral') {
                     if (checkCollision(cplayer, weapon)) {
                         if (cplayer.live && !cplayer.weaponHit) {
                             damageAnimation(cplayer);

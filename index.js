@@ -78,7 +78,10 @@ app.get('/game/', async (req, res) => {
 
     const match = await Match.findById(gameId).populate(['map']);
     const now = new Date();
-    if (!match || (match.endTime && match.endTime < now)) return res.redirect('/');
+    if (!match) return res.redirect('/');
+    if (match.endTime < now) {
+      return res.redirect(`/game-end/${match.id.toString()}`);
+    }
     const players = match.players;
 
     let auth = false;
@@ -97,6 +100,8 @@ app.get('/game/', async (req, res) => {
     return res.redirect('/');
   }
 })
+
+
 
 app.use(express.static(path.join(__dirname, "build", "client")));
 app.get("*", (_, res) => {

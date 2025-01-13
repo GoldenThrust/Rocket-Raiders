@@ -17,6 +17,7 @@ export default [
       route("merc", "./routes/home/inventory/merc.tsx"),
     ]),
     route("/profile", "./routes/home/profile.tsx"),
+    route("/game-end/:gameId", "./routes/home/gameEnd.tsx"),
     // route("/matchmaking", "./routes/home/matchmaking.tsx"),
     // route("/leaderboard", "./routes/home/leaderboard.tsx"),
     // route("/tournament", "./routes/home/tournament.tsx"),

@@ -1,11 +1,11 @@
 import { SocketAddress } from "net";
 import Match from "../models/match.js";
 import { redis } from "./db.js";
-import Map from "../models/map.js";
 import { balanceTeams } from "../utils/func.js";
+import { matchEndQueue } from "../worker.js";
 
 // TODO: make sure only initiator are allow to make some changes in backend.
-
+const duration = 1;
 class WebSocket {
     constructor() {
         this.ios = null;
@@ -77,7 +77,17 @@ class WebSocket {
 
                         if (teams.neutral.players.length > 1) {
                             const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
+                            const startTime = new Date();
+                            const endTime = new Date();
+                            endTime.setMinutes(time.getMinutes() + duration);
+                            match.startTime = startTime;
+                            match.endTime = endTime;
                             await newMatch.save();
+
+                            await matchEndQueue.add(
+                                { matchId: newMatch._id.toString() },
+                                { delay: duration * 60 * 1000 }
+                            );
 
                             const populatedMatch = await newMatch.populate(['players'])
 
@@ -88,7 +98,7 @@ class WebSocket {
                             this.ios.lobby.to(gameId).emit('startGame', newMatch._id.toString());
                         } else {
                             teams = balanceTeams(teams);
-                            if (teams.blue.players.length >= 1 || teams.red.players.length >= 1) {
+                            if ((teams.blue.players.length >= 1 && teams.red.players.length >= 1) || teams.blue.players.length > 1 || teams.red.players.length > 1) {
                                 stats = [];
                                 teams.blue.players.forEach((player) => {
                                     stats.push({ player, kills: 0, deaths: 0, team: 'blue' });
@@ -96,10 +106,18 @@ class WebSocket {
                                 teams.red.players.forEach((player) => {
                                     stats.push({ player, kills: 0, deaths: 0, team: 'red' });
                                 });
-                                console.log(stats);
 
                                 const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
+                                const endTime = new Date(match.startTime);
+                                endTime.setMinutes(endTime.getMinutes() + duration);
+                                match.endTime = endTime;
                                 await newMatch.save();
+
+                                await matchEndQueue.add(
+                                    { matchId: newMatch._id.toString() },
+                                    { delay: duration * 60 * 1000 }
+                                );
+
                                 const populatedMatch = await newMatch.populate(['players'])
 
 
@@ -232,11 +250,19 @@ class WebSocket {
                     try {
                         const match = await Match.findById(gameId).populate('stats.player');
 
+
                         for (let stat of match.stats) {
                             if (stat.player.username === shooter.username) {
                                 stat.kills++;
                                 stat.player.stats.totalKills++;
                                 await stat.player.save();
+                                if (match.gameMode !== 'free-for-all') {
+                                    match.teams.forEach((team) => {
+                                        if (team.name === shooter.team) {
+                                            team.score++;
+                                        }
+                                    });
+                                }
                             }
                             if (stat.player.username === shootee.username) {
                                 stat.deaths++;
@@ -269,7 +295,29 @@ class WebSocket {
         return this.connectionPromise;
     }
 
-    gameEnd(gameId) {
+    async gameEnd(gameId) {
+        const match = await Match.findById(gameId).populate(['teams.players', 'players', 'stats.player']);
+
+        if (match.gameMode.toString() === 'free-for-all') {
+            const highestKill = match.stats.reduce((prev, current) => (prev.kills > current.kills ? prev : current));
+            console.log(highestKill, 'free-for-all');
+            highestKill.player.stats.matchesWon++;
+            highestKill.player.save();
+            match.winner = highestKill.player._id;
+            match.save();
+        } else {
+            const highestScore = match.teams.reduce((prev, current) => (prev.score > current.score ? prev : current));
+
+            console.log(highestScore, 'team-deathmatch');
+            highestScore.players.forEach((player) => {
+                player.stats.matchesWon++;
+                player.save();
+            })
+
+            match.winningTeam = highestScore.name;
+            match.save();
+        }
+
         this.ios.io.to(gameId).emit('gameEnd');
     }
 

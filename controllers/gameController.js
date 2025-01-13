@@ -39,14 +39,17 @@ class gameController {
             const gameMode = req.params.gameMode;
             const match = new Match({ gameMode, players: [user] });
             const endTime = new Date(match.startTime);
-            endTime.setMinutes(endTime.getMinutes() + 10);
+            endTime.setMinutes(endTime.getMinutes() + 1);
+            // endTime.setMinutes(endTime.getMinutes() + 10);
             match.endTime = endTime;
             await match.save();
 
-            matchEndQueue.add(
+            await matchEndQueue.add(
                 { matchId: match._id.toString() },
-                { delay: 10 * 60 * 1000 }
-              );
+                // { delay: 10 * 60 * 1000 }
+                { delay: 2 * 1000 }
+            );
+            console.log('queuing')
 
             res.status(201).json({
                 message: "Game initiated successfully",
@@ -143,6 +146,50 @@ class gameController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: "Failed to retrieve active maps", error: error.message });
+        }
+    }
+
+    async getEndGame(req, res) {
+        try {
+            const gameId = req.params.gameId;
+
+            if (!gameId) {
+                return res.status(400).json({ message: 'Game ID is required' });
+            }
+
+            const match = await Match.findById(gameId).populate(['teams.players', 'players', 'stats.player']);
+
+            if (!match) {
+                return res.status(404).json({ message: 'Match not found' });
+            }
+
+            const auth = match.players.some(player => player._id.toString() === req.user._id.toString());
+            if (!auth) {
+                return res.status(403).json({ message: 'You are not authorized to view this match' });
+            }
+
+            const now = new Date();
+            if (match.endTime > now) {
+                return res.status(400).json({ message: 'The game is still ongoing' });
+            }
+
+            let winners = [];
+            if (match.gameMode === 'free-for-all') {
+                winners = match.stats.find(stat => stat.player._id.toString() === match.winner._id.toString());
+            } else {
+                winners = match.teams
+                    .filter(team => team.name === match.winningTeam)
+                    .flatMap(team => team.players.map(player =>
+                        match.stats.find(stat => stat.player._id.toString() === player._id.toString())
+                    ));
+            }
+
+            console.log(winners)
+
+            return res.json({ status: 'OK', winners, gameMode: match.gameMode });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ message: 'Failed to retrieve match details', error: e.message });
         }
     }
 }

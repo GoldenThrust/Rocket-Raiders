@@ -71,7 +71,8 @@ socket.on('destroy', (shooter, shootee) => {
 })
 
 socket.on('gameEnd', ()=> {
-    window.location.href = `/game/end-game/${getGameId()}`;
+    console.log('game end')
+    window.location.href = `/game-end/${getGameId()}`;
 })
 
 export default socket;
