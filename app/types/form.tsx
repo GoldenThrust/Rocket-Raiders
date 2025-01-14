@@ -3,6 +3,6 @@ export interface FormData {
     name: string;
     value?: string;
     placeholder?: string;
-    required: boolean;
+    required?: boolean;
     ref?: React.RefObject<HTMLInputElement | null>;
 }

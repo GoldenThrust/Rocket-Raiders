@@ -37,13 +37,11 @@ export default function Login({ actionData }: Route.ComponentProps) {
     {
       type: "text",
       name: "username",
-      value: actionData?.username || "",
       placeholder: "Username or Email",
     },
     {
       type: "password",
       name: "password",
-      value: actionData?.password || "",
       placeholder: "Password",
     },
   ];
