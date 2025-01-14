@@ -5,7 +5,7 @@ import { balanceTeams } from "../utils/func.js";
 import { matchEndQueue } from "../worker.js";
 
 // TODO: make sure only initiator are allow to make some changes in backend.
-const duration = 30;
+const duration = 10;
 class WebSocket {
     constructor() {
         this.ios = null;
