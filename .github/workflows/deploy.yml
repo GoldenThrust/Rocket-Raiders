@@ -22,60 +22,27 @@ jobs:
         run: npm install
 
       - name: Build the app
-        run: /
-           npm run pack 
-           npm run build 
-
-      - name: Check if dist directory exists
         run: |
-          ls -lah frontend/roomquery/dist
-
-      - name: Upload dist directory as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: frontend/roomquery/dist
+          npm run pack
+          npm run build
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Download dist directory artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: frontend/roomquery/dist
-      
-      - name: Display structure of downloaded files
-        run: ls -R frontend/roomquery/dist
-
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Transfer build files to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -r frontend/roomquery/dist ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/RoomQuery/frontend/roomquery
-
-      - name: Deploy backend and collect static files
+      - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/${{ secrets.EC2_USER }}/RoomQuery/backend/roomquery
-            git checkout main
-            git pull origin main
-
-            if [ ! -d "venv" ]; then
-               python3 -m venv venv
-            fi
-            source ./venv/bin/activate
-
-            pip install -r requirements.txt
-            python manage.py collectstatic --noinput
-
-            sudo systemctl restart roomquery
+            cd /home/ubuntu/Rocket-Raiders || exit
+            git pull || exit
+            npm install || exit
+            npm run pack || exit
+            npm run build || exit
+            sudo systemctl restart rocketraiders || exit
           EOF
