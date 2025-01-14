@@ -247,5 +247,5 @@ function setFullScreen() {
 }
 
 document.onclick = () => {
-    // setFullScreen();
+    setFullScreen();
 }
