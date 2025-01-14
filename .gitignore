@@ -137,3 +137,6 @@ dist
 .pnp.*
 
 .codegpt
+
+game.js
+game.js.map
