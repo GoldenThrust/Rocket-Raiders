@@ -2,6 +2,7 @@ import { createTransport } from "nodemailer";
 import { DEV, hostUrl } from "../utils/constants.js";
 import process from "process";
 
+// #checking
 class MailService {
     constructor() {
         this.hostUrl = hostUrl;
