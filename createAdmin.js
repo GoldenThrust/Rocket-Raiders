@@ -9,7 +9,7 @@ mongodb.run().then(() => {
             const email = data.toString().trim();
             const admin = new Admin({ email });
             const crypto = uuid();
-            await mail.sendAdminActivationLink(admin, crypto).then(async ()=> {
+            await mail.sendAdminActivationLink(email, crypto).then(async ()=> {
                 await redis.set(`admin_${crypto}`, email, 60 * 60)
                 await admin.save();
                 process.exit();

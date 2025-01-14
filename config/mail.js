@@ -121,32 +121,34 @@ class MailService {
         });
     }
 
+
     async sendAdminActivationLink(email, crypto) {
+    
         const resetPasswordLink = `${this.hostUrl}/auth/admin/activate/${crypto}/`;
         const imgLink = `${this.hostUrl}/logo.svg`;
-
+    
         const mailTemplate = `
-                            <body>
-                                <div
-                                    style="font-family: Arial, sans-serif; background-color: #212020; padding: 20px; text-align:center; color:antiquewhite; width: 50%; margin: auto; border-radius: 10%;">
-                                    <h1 style="text-align: center; color: #333;">
-                                        <img src=${imgLink} alt="Rocket Raider">
-                                    </h1>
-                                    <p style="font-size: 16px;">
-                                        Activate Admin Page
-                                    </p>
-                                    <p style="text-align: center;">
-                                        <a href="${resetPasswordLink}"
-                                            style="background-color: #814caf; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                                            Active Link
-                                        </a>
-                                    </p>
-                                    <p style="font-size: 14px; color: #999; text-align: center;">
-                                        This link will expire in 1 hours. If you didn’t request this, please ignore this email.
-                                    </p>
-                                </div>
-                            </body>`;
-
+        <body>
+            <div
+                style="font-family: Arial, sans-serif; background-color: #212020; padding: 20px; text-align:center; color:antiquewhite; width: 50%; margin: auto; border-radius: 10%;">
+                <h1 style="text-align: center; color: #333;">
+                    <img src="${imgLink}" alt="Rocket Raider">
+                </h1>
+                <p style="font-size: 16px;">
+                    Activate Admin Page
+                </p>
+                <p style="text-align: center;">
+                    <a href="${resetPasswordLink}"
+                        style="background-color: #814caf; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                        Active Link
+                    </a>
+                </p>
+                <p style="font-size: 14px; color: #999; text-align: center;">
+                    This link will expire in 1 hour. If you didn’t request this, please ignore this email.
+                </p>
+            </div>
+        </body>`;
+    
         const mailOptions = {
             from: process.env.MAIL_USERNAME,
             to: email,
@@ -154,16 +156,19 @@ class MailService {
             text: `Account Activation Link: ${resetPasswordLink}`,
             html: mailTemplate
         };
-
+    
         return new Promise((resolve, reject) => {
-            this.transporter.sendMail(mailOptions, async (err, result) => {
+            this.transporter.sendMail(mailOptions, (err, result) => {
                 if (err) {
+                    console.error('Error sending email:', err);
                     return reject(err);
                 }
+                console.log('Email sent successfully:', result);
                 return resolve(result);
             });
         });
     }
+
     async sendAdminSessionLink(email, crypto) {
         const resetPasswordLink = `${this.hostUrl}/auth/admin/login/${crypto}`;
         const imgLink = `${this.hostUrl}/logo.svg`;
