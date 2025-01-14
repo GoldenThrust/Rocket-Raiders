@@ -10,7 +10,7 @@ const scaleFactor = 0.8;
 const x = innerWidth * 0.9;
 const y = innerHeight * 0.82;
 const radius = 20;
-let lastUse = 1000;
+let lastUse = 30000;
 let enableSpeciality = false;
 
 
@@ -82,7 +82,7 @@ function main(t) {
         ctx.fillText('Game started in ' + (10 - Math.floor(t / 1000)) + ' seconds', (canvas.width / 2 - text.width / 2), canvas.height / 2);
     } else if (Math.floor(t / 100) > 8 && Math.floor(t / 60000) < 15) {
         player.speciality.updatePowersUp()
-        if (t - lastUse > 1000) {
+        if (t - lastUse > 30000) {
             lastUse = t;
             enableSpeciality = true;
         }
