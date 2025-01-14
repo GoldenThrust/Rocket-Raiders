@@ -5,7 +5,7 @@ import { balanceTeams } from "../utils/func.js";
 import { matchEndQueue } from "../worker.js";
 
 // TODO: make sure only initiator are allow to make some changes in backend.
-const duration = 1;
+const duration = 30;
 class WebSocket {
     constructor() {
         this.ios = null;
@@ -76,12 +76,9 @@ class WebSocket {
 
 
                         if (teams.neutral.players.length > 1) {
-                            const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
-                            const startTime = new Date();
                             const endTime = new Date();
-                            endTime.setMinutes(time.getMinutes() + duration);
-                            match.startTime = startTime;
-                            match.endTime = endTime;
+                            endTime.setMinutes(endTime.getMinutes() + duration);
+                            const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats, endTime });
                             await newMatch.save();
 
                             await matchEndQueue.add(
@@ -107,10 +104,10 @@ class WebSocket {
                                     stats.push({ player, kills: 0, deaths: 0, team: 'red' });
                                 });
 
-                                const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats });
-                                const endTime = new Date(match.startTime);
+                                const endTime = new Date();
                                 endTime.setMinutes(endTime.getMinutes() + duration);
-                                match.endTime = endTime;
+
+                                const newMatch = new Match({ players, teams: Object.values(teams), gameMode: match.gameMode, map: match.map._id, stats, endTime });
                                 await newMatch.save();
 
                                 await matchEndQueue.add(
@@ -246,7 +243,7 @@ class WebSocket {
                     socket.to(gameId).emit('weaponHit', shooter, shootee, gunIndex);
                 });
 
-                socket.on('destroy', async (shooter, shootee) => {
+                socket.on('destroy', async (shooter, shootee, powerUps=false) => {
                     try {
                         const match = await Match.findById(gameId).populate('stats.player');
 
@@ -280,12 +277,11 @@ class WebSocket {
                         }
 
                         await match.save();
-                        socket.to(gameId).emit('destroy', shooter.username, shootee.username);
+                        socket.to(gameId).emit('destroy', shooter.username, shootee.username, powerUps);
                     } catch (error) {
                         console.error('Error handling destroy event:', error);
                     }
                 });
-
 
 
                 resolve(true);
@@ -306,7 +302,7 @@ class WebSocket {
             match.winner = highestKill.player._id;
             match.save();
         } else {
-            const highestScore = match.teams.reduce((prev, current) => (prev.score > current.score ? prev : current));
+            const highestScore = match.teams.filter((team)=> team.name !== 'neutral').reduce((prev, current) => (prev.score > current.score ? prev : current));
 
             console.log(highestScore, 'team-deathmatch');
             highestScore.players.forEach((player) => {

@@ -1,9 +1,10 @@
 import { ctx, maxDistance } from "../utils/constant.js";
 import { cp } from "../main.js";
-import { checkCollision, damageAnimation, getGameId, getRandomInt } from "../utils/function.js";
+import { checkCollision, damageAnimation, getGameId, getRandomInt, killPlayer } from "../utils/function.js";
 import socket from "../websocket.js";
 import Player from "./player.js";
 import { weapons } from "./weapons/utils.js";
+import { playGunshotSound } from "../utils/audio.js";
 
 export default class User extends Player {
     constructor(ctx) {
@@ -102,7 +103,6 @@ export default class User extends Player {
     }
 
     keyDown(e) {
-        console.log(e.key)
         if (!this.dead) {
             if (e.key == 'ArrowDown') {
                 this.key.down = true;
@@ -135,6 +135,7 @@ export default class User extends Player {
         if (this.shoot) {
             if (!this.dead && t - this.lastFire > this.fireRate) {
                 const wObj = new weapons[this.weaponId](this.username, this.x, this.y, this.angle, this.speed + this.gunSpeed, this.ctx)
+                playGunshotSound(this.x, this.y, this.x, this.y)
                 socket.emit('onShoot', this.username, this.weaponId, wObj);
                 this.weapons.push(wObj)
                 this.lastFire = t;
@@ -168,6 +169,7 @@ export default class User extends Player {
         this.y = Math.min(this.y, maxDistance.h);
         this.y = Math.max(this.y, -maxDistance.h);
 
+
         sessionStorage.setItem(`playerPosition-${getGameId()}`, JSON.stringify({ x: this.x, y: this.y, angle: this.angle, date: t }))
 
         // if (this.weapons.length < 100) {
@@ -181,7 +183,7 @@ export default class User extends Player {
 
 
             cp.forEach((cplayer) => {
-                if (cplayer.team != this.team || cplayer.team === 'neutral') {
+                if ((cplayer.team != this.team || cplayer.team === 'neutral') && !cplayer.explosion) {
                     if (checkCollision(cplayer, weapon)) {
                         if (cplayer.live && !cplayer.weaponHit) {
                             damageAnimation(cplayer);
@@ -190,9 +192,7 @@ export default class User extends Player {
                         }
 
                         if (cplayer.live === 0 && !cplayer.dead) {
-                            cplayer.dead = true;
-                            cplayer.weaponHit = true;
-                            socket.emit('destroy', this, cplayer);
+                            killPlayer(cplayer, this, socket)
                         }
                     }
                 }

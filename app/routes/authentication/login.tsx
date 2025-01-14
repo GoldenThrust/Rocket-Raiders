@@ -27,10 +27,10 @@ export default function Login({ actionData }: Route.ComponentProps) {
   const dispatch = useDispatch();
   useAuth();
 
-  if (actionData && actionData.status === 'OK') {
+  if (actionData && actionData.status === "OK") {
     dispatch(setAuthenticationState(true));
     dispatch(setUserData(actionData.message));
-    console.log("User is authenticated");
+    window.location.href = '/';
   }
 
   const formData = [
@@ -68,7 +68,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
           </Link>
         </div>
 
-        {actionData && actionData.status !== 'OK' ? (
+        {actionData && actionData.status !== "OK" ? (
           <p className="flex justify-center items-center text-red-500">
             {actionData.message}
           </p>

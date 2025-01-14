@@ -4,14 +4,21 @@ import { distanceBetween, drawLive, drawMiniMapPosition, getGameId, getRandomInt
 import { ctx, canvas, mapAR, maxDistance } from "./utils/constant.js"
 import socket from "./websocket.js";
 import axios from "axios";
-// window.addEventListener('click', () => {
-//     const audioCtx = new AudioContext();
-// })
-const scaleFactor = 0.5;
+import { updateRocketSound } from "./utils/audio.js";
+
+const scaleFactor = 0.8;
+const x = innerWidth * 0.9;
+const y = innerHeight * 0.82;
+const radius = 20;
+let lastUse = 1000;
+let enableSpeciality = false;
+
 
 const gameid = getGameId();
 
 const gameStarted = sessionStorage.getItem(gameid);
+const imgP = new Image();
+imgP.src = '/assets/power.png';
 
 if (!gameStarted) {
     sessionStorage.setItem(gameid, true);
@@ -21,8 +28,6 @@ addEventListener("contextmenu", () => { });
 
 export let cp = new Map();
 
-
-const elem = document.documentElement;
 
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
@@ -66,7 +71,9 @@ axios.get(`/api/game/get-game/${gameid}`).then((response) => {
 function main(t) {
     // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     canvas.width = innerWidth;
-    // mapCanvas.width = (maxDistance.w * 2);
+    const gameData = JSON.parse(sessionStorage.getItem(`gameData-${gameid}`));
+    const kills = sessionStorage.getItem(`kill-${gameid}`);
+
 
     if (Math.floor(t / 1000) < 10 && !gameStarted) {
         ctx.fillStyle = 'white';
@@ -74,6 +81,11 @@ function main(t) {
         const text = ctx.measureText('Game started in ' + (10 - Math.floor(t / 1000)) + 'seconds');
         ctx.fillText('Game started in ' + (10 - Math.floor(t / 1000)) + ' seconds', (canvas.width / 2 - text.width / 2), canvas.height / 2);
     } else if (Math.floor(t / 100) > 8 && Math.floor(t / 60000) < 15) {
+        player.speciality.updatePowersUp()
+        if (t - lastUse > 1000) {
+            lastUse = t;
+            enableSpeciality = true;
+        }
         ctx.strokeStyle = 'red';
 
         ctx.save();
@@ -106,13 +118,48 @@ function main(t) {
         ctx.strokeRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         ctx.fillRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         cp.forEach((cplayer) => {
+            updateRocketSound(cplayer.x, cplayer.y, player.x, player.y, cplayer.speed);
             drawMiniMapPosition(cplayer, cplayer.team === 'neutral' || cplayer.team !== player.team ? 'red' : 'blue');
         })
         drawMiniMapPosition(player);
         player.update(t);
+        // drawLive(player)
+
+
+
+
+        if (gameData) {
+            const endTime = new Date(gameData?.endTime);
+            const now = new Date();
+
+            const diffMs = endTime - now;
+
+            if (diffMs > 0) {
+                const totalSeconds = Math.floor(diffMs / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+
+                const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                ctx.font = '12px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText(`${formattedTime}`, 15, 15);
+            } else {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText('00:00', 10, 10);
+            }
+        }
+
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText(`Kills: ${kills || 0}`, 15, 30);
+        ctx.save();
+
+        drawImageInArc();
     }
 
-    drawLive(player)
+
 
     requestAnimationFrame(main);
 }
@@ -122,11 +169,57 @@ requestAnimationFrame(main);
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
-// event listeners
 addEventListener('resize', () => {
     canvas.width = innerWidth;
     canvas.height = innerHeight;
 })
+
+function drawImageInArc() {
+    ctx.save();
+    ctx.fillStyle = 'springgreen';
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    if (enableSpeciality) {
+        ctx.fill();
+    }
+    ctx.closePath();
+
+    ctx.clip();
+
+    ctx.drawImage(imgP, x - radius, y - radius, radius * 2, radius * 2);
+
+    ctx.restore();
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+
+function handleClickOrTouch(event) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = event.clientX || event.touches[0].clientX;
+    const clientY = event.clientY || event.touches[0].clientY;
+
+    const canvasX = clientX - rect.left;
+    const canvasY = clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.closePath();
+
+    if (ctx.isPointInPath(canvasX, canvasY)) {
+        if (enableSpeciality) {
+            enableSpeciality = false;
+            player.speciality.usePowersUp()
+        }
+        console.log('Clicked or touched inside the arc!');
+    }
+}
+
+addEventListener('click', handleClickOrTouch);
+addEventListener('touchstart', handleClickOrTouch);
+
 
 
 function setFullScreen() {

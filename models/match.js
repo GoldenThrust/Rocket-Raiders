@@ -43,7 +43,7 @@ const MatchSchema = new Schema({
     },
   ],
   startTime: { type: Date, default: Date.now },
-  endTime: { type: Date },
+  endTime: { type: Date, required: true },
   stats: [
     {
       player: { type: Schema.Types.ObjectId, ref: "User" },

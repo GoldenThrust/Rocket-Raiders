@@ -1,3 +1,4 @@
+import { playExplosionSound } from "./audio.js";
 import { ctx, mapAR, maxDistance } from "./constant.js";
 
 
@@ -170,4 +171,27 @@ export function drawMiniMapPosition(player, color = 'springgreen') {
   ctx.beginPath();
   ctx.arc(scaleDown.x, scaleDown.y, 2, 0, Math.PI * 2);
   ctx.fill();
+}
+
+
+export function convertTitleToCamelCase(input) {
+  if (!input) return "";
+
+  return input
+    .toLowerCase()
+    .replace(/(?:\s+)([a-z])/g, (_, letter) => letter.toUpperCase())
+    .replace(/^./, (match) => match.toLowerCase());
+}
+
+
+export function killPlayer(cplayer, player, socket, powerUps) {
+  playExplosionSound(cplayer.x, cplayer.y, player.x, player.y);
+  cplayer.dead = true;
+  cplayer.weaponHit = true;
+  const kills = sessionStorage.getItem(`kill-${getGameId()}`) || 0;
+  sessionStorage.setItem(`kill-${getGameId()}`, Number(kills) + 1);
+  if (powerUps) {
+    cplayer.live = 0;
+  }
+  socket.emit('destroy', player, cplayer, true);
 }

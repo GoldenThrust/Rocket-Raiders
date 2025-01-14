@@ -35,8 +35,6 @@ export default class SpriteAnimation {
             if (this.numberOfIterations >= this.maxIterations) {
                 this.state = 'paused';
             }
-
-            console.log('Iterations: ' + this.numberOfIterations, this.state, this.numberOfIterations >= this.maxIterations);
         }
 
         const column = this.currentFrame % this.numberOfColumns;

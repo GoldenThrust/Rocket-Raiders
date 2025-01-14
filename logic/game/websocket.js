@@ -57,14 +57,16 @@ socket.on('weaponHit', (shooter, shootee, gunIndex) => {
         damageAnimation(shooteePlayer)
 })
 
-socket.on('destroy', (shooter, shootee) => {
+socket.on('destroy', (shooter, shootee, powerUps) => {
     if (player.username === shootee) {
+        if (powerUps) player.live = 0;
         player.dead = true;
         player.weaponHit = true;
     }
 
     const shooteePlayer = cp.get(shootee);
     if (shooteePlayer) {
+        if (powerUps) shooteePlayer.live = 0;
         shooteePlayer.dead = true;
         shooteePlayer.weaponHit = true;
     }

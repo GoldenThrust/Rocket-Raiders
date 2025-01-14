@@ -17,7 +17,7 @@ export default function Activate() {
           cancelToken: source.token,
         });
         timeout = setTimeout(() => {
-          navigate("/", { replace: true });
+          window.location.href = "/";
         }, 2000);
       } catch (err: any) {
         setError(err?.data?.message || "An error occurred.");
