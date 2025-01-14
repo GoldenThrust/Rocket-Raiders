@@ -6,29 +6,8 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build the app
-        run: |
-          npm run pack
-          npm run build
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
 
     steps:
       - name: Set up SSH key
@@ -39,10 +18,19 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            if ! command -v npm &> /dev/null; then
+              echo "Installing Node.js and npm..."
+              curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+
             cd /home/ubuntu/Rocket-Raiders || exit
+            
             git pull || exit
+            
             npm install || exit
             npm run pack || exit
             npm run build || exit
+
             sudo systemctl restart rocketraiders || exit
           EOF
