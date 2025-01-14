@@ -2,14 +2,14 @@ import { model, Schema } from 'mongoose';
 
 const RocketSchema = new Schema({
   name: { type: String, unique: true, required: true },
-  speed: { type: Number, required: true },
-  durability: { type: Number, required: true },
-  fireRate: { type: Number, required: true },
-  speciality: { type: String, required: true },
-  range: { type: Number, required: true },
-  rocket: { type: String, required: true },
-  flame: { type: String, default: "assets/imgs/uploads/flame.svg" },
-  price: { type: Number, default: 2000},
+  speed: { type: Number, default: 5 },
+  durability: { type: Number, default: 1 },
+  fireRate: { type: Number, default: 500 },
+  speciality: { type: String, default: 'Sonic Dash' },
+  range: { type: Number, default: 5000 },
+  rocket: { type: String, default: "assets/imgs/player.svg" },
+  flame: { type: String, default: "assets/imgs/flame.svg" },
+  price: { type: Number, default: 20},
   // weaponSlots: { type: Number, default: 2 },
 }, { timestamps: true });
 

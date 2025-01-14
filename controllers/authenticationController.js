@@ -47,6 +47,21 @@ class AuthenticationController {
 
             const hashedPassword = await hash(password);
 
+
+            const rocket = Rocket.findOne({ name: 'Rocket' });
+            const map = Map.findOne({ name: 'Mystic'})
+
+            if (!rocket) {
+                const rocket = new Rocket({ name: 'Rocket' });
+                await rocket.save();
+            }
+
+            if (!map) {
+                const map = new Map({ name: 'Mystic' });
+                await map.save();
+            }
+
+
             let user;
 
             if (existingUser) {
@@ -452,7 +467,7 @@ class AuthenticationController {
             if (!name || !speed || !durability || !speciality || !fireRate || !range || !rocket || !price) {
                 return res.status(401).json({ status: "ERROR", message: "Invalid Credentials" });
             }
-            const data = { name, speed, durability, speciality, fireRate, range, rocket, price};
+            const data = { name, speed, durability, speciality, fireRate, range, rocket, price };
 
             if (flame) {
                 data['flame'] = flame;

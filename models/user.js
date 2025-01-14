@@ -17,7 +17,7 @@ const UserSchema = new Schema({
   ],
   weapons: [{ type: Schema.Types.ObjectId, ref: "Weapon" }],
   coin: { type: String, default: 0 },
-  avatar: { type: String, default: "assets/imgs/uploads/default-avatar.svg" },
+  avatar: { type: String, default: "assets/imgs/default-avatar.svg" },
   stats: {
     totalKills: { type: Number, default: 0 },
     totalDeaths: { type: Number, default: 0 },

@@ -81,6 +81,14 @@ Rocket Raiders is a fast-paced multiplayer space shooter game where players enga
 7. Open your browser and go to `http://localhost:3001` to play the game.
 
 > Note: Always use npm run start-server when not running in production or https server. 
+8. To create a Rocket and Map, you need to set up an admin account. Run the following command, which will prompt you to enter your email address. After entering your email, a link will be sent to activate your account:
+
+```bash
+node createAdmin.js
+```
+9. Once the admin account is created, navigate to http://localhost:3001/auth/admin/login. Enter your activated email address, and an authentication link will be sent to your email. Click on the link to authenticate.
+
+10. After authentication, click on the login button. You will be redirected to the homepage, where you can add rockets and image assets.
 
 
 ## Scripts

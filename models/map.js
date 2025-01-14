@@ -45,7 +45,7 @@ const MapSchema = new Schema({
   //     },
   //   ],
   // },
-  background: { type: String, default: "default-space.jpg" },
+  background: { type: String, default: "assets/imgs/enlight.jpg" },
 }, { timestamps: true });
 
 const Map = model('Map', MapSchema);
