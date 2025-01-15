@@ -1,10 +1,10 @@
-// route('/projects/:projectId', './project.tsx')
 import FormField from "~/components/ui/authentication/Form";
 import type { Route } from "./+types/login";
 import { ChevronsLeft } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useAuth } from "~/hooks/auth";
 import axios from "axios";
+
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData.entries());

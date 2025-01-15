@@ -20,7 +20,7 @@ import {
   setUserData,
 } from "./redux/authenticationSlice";
 import { io, Socket } from "socket.io-client";
-import SocketProvider, { useSocket } from "~/context/socketContext";
+import SocketProvider from "~/context/socketContext";
 axios.defaults.baseURL = `${hostUrl}/api`;
 axios.defaults.withCredentials = true;
 

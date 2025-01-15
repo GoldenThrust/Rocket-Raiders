@@ -1,14 +1,16 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { createContext, useContext } from "react";
 
 export const SocketContext = createContext<Socket | null>(null);
 
 export const useSocket = (): Socket | null => {
   const context = useContext(SocketContext);
 
-  // if (!context) {
-  //   throw new Error("useSocket must be used within a SocketProvider");
-  // }
+
+  if (!context) {
+    console.error("useSocket must be used within a SocketProvider");
+  }
+
   return context;
 };
 

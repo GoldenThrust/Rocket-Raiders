@@ -1,5 +1,5 @@
 import Header from "~/components/ui/home/header";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "~/store";
