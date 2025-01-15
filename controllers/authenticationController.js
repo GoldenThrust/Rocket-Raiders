@@ -48,8 +48,9 @@ class AuthenticationController {
             const hashedPassword = await hash(password);
 
 
-            const rocket = Rocket.findOne({ name: 'Rocket' });
-            const map = Map.findOne({ name: 'Mystic'})
+            const rocket = await Rocket.findOne({ name: 'Rocket' });
+            const map = await Map.findOne({ name: 'Mystic'})
+
 
             if (!rocket) {
                 const rocket = new Rocket({ name: 'Rocket' });

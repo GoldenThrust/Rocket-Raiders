@@ -1,8 +1,6 @@
 import { ChevronsLeft } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router";
 import Header from "~/components/ui/home/header";
-import TestUserIMG from "~/assets/test-user.png";
-import AddUserIMG from "~/assets/add-user.svg";
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";

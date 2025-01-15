@@ -1,7 +1,6 @@
 import { ChevronsLeft } from "lucide-react";
 import { Link } from "react-router";
 import Header from "~/components/ui/home/header";
-import TestUserIMG from "~/assets/test-user.png";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "~/store";
