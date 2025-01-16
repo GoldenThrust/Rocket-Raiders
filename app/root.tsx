@@ -64,7 +64,7 @@ function setFullScreen() {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // addEventListener("click", setFullScreen);
+     addEventListener("click", setFullScreen);
     return () => removeEventListener("click", setFullScreen);
   }, []);
 
