@@ -32,7 +32,6 @@ export default function Lobby() {
       },
     });
 
-    console.log(gameId);
 
     const socket = socketRef.current;
 
@@ -141,9 +140,7 @@ export default function Lobby() {
         setMap(maps);
         return maps[0];
       } catch (error: any) {
-        if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-        } else {
+        if (!axios.isCancel(error)) {
           console.error("Error during auth verification:", error);
         }
       }

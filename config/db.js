@@ -38,7 +38,6 @@ class Redis {
   }
 
   async hget(key, field) {
-    console.log(key, field);
     return this.client.HGET(key, field);
   }
 

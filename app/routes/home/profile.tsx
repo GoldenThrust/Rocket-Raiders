@@ -6,21 +6,39 @@ import { useSelector } from "react-redux";
 import type { RootState } from "~/store";
 import { convertCamelToTitleCase } from "~/utils/action";
 import { hostUrl } from "~/utils/constants";
+import { useState, useEffect } from "react";
 
 export default function Profile() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const [profilePics, setProfilePics] = useState(`${hostUrl}/${user?.avatar}`);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [objectUrl]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const formmData = new FormData();
-      formmData.append("avatar", file);
-      try {
-        axios.put("/auth/update-profile", formmData).then((res) => {
-          console.log(res.data);
+      const img = URL.createObjectURL(file);
+      setProfilePics(img);
+      setObjectUrl(img);
+
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      axios
+        .put(`${hostUrl}/auth/update-profile`, formData)
+        .then((res) => {
+          window.location.reload();
+        })
+        .catch((error) => {
+          console.log(error);
         });
-      } catch (error) {
-        console.log(error);
-      }
     }
   };
 
@@ -30,7 +48,7 @@ export default function Profile() {
     <>
       <Header>
         <Link
-          to={"/"}
+          to="/"
           className="flex flex-row items-center gap-1 font-bold font-serif text-white"
         >
           <ChevronsLeft /> Home
@@ -42,7 +60,7 @@ export default function Profile() {
         </div>
         <div className="relative group">
           <img
-            src={`${hostUrl}/${user?.avatar}`}
+            src={profilePics}
             alt="User Avatar"
             className="rounded-full w-32 h-32 object-cover"
           />

@@ -17,7 +17,6 @@ class Speciality {
             sonicDash: this.#sonicDash.bind(this),
         };
         this.powerUp = false;
-        console.log(this.speciality, type)
     }
 
     usePowersUp() {
@@ -41,7 +40,6 @@ class Speciality {
         //     const bulletX = player.x + Math.cos(angle) * 10;
         //     const bulletY = player.y + Math.sin(angle) * 10;
 
-        //     console.log(`Bullet shot at (${bulletX}, ${bulletY}) with angle ${angle}`);
         // }
 
         return {

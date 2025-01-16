@@ -6,11 +6,6 @@ let socket: Socket | null;
 export async function verifyAdmin() {
   try {
     const response = await axios.get("/auth/admin/verify");
-    if (response.status === 200) {
-      console.log("User is authenticated");
-    } else {
-      console.log("User is not authenticatedhb");
-    }
 
     return response.data;
   } catch (error: any) {

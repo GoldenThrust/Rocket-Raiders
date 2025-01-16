@@ -4,11 +4,7 @@ import { ChevronsLeft } from "lucide-react";
 import { Link } from "react-router";
 import { useAuth } from "~/hooks/auth";
 import axios from "axios";
-import { useDispatch } from "react-redux";
-import {
-  setAuthenticationState,
-  setUserData,
-} from "~/redux/authenticationSlice";
+
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
@@ -24,7 +20,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
-  const dispatch = useDispatch();
   useAuth();
 
   if (actionData && actionData.status === "OK") {

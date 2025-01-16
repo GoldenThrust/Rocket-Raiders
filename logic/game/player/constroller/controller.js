@@ -12,11 +12,6 @@ export default class Controller {
         addEventListener('devicemotion', (e) => {
             const { x, y, z } = e.acceleration;
 
-            document.querySelector('p').innerText = `${this.forward}\n${this.backward}`;
-            // document.querySelector('p').innerText = `${this.forward}\n${this.backward}\n${this.left}\n${this.right}`;
-
-            document.querySelector('p').innerText = `${x}\n${y}\n${z}`;
-
             if (Math.ceil(x) > 1) {
                 this.forward = true;
             } else {
@@ -57,8 +52,6 @@ export default class Controller {
         //             this.right = true;
         //             break;
         //     }
-        //     console.log(this)
-
         // })
 
 
@@ -77,7 +70,6 @@ export default class Controller {
         //             this.right = false;
         //             break;
         //     }
-        //     console.log(this)
         // })
     }
 }

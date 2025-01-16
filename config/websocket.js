@@ -18,16 +18,11 @@ class WebSocket {
         this.connectionPromise = new Promise((resolve, reject) => {
             this.ios.home.on('connection', async (socket) => {
                 socket.on("connected", () => {
-                    console.log('Connected from /home');
                     resolve(socket);
                 })
 
                 socket.on('initiateGame', (match) => {
                     socket.broadcast.emit('newMatches', match);
-                });
-
-                socket.on("disconnect", () => {
-                    console.log('Disconnected from /home');
                 });
             });
 
@@ -180,7 +175,6 @@ class WebSocket {
                             for (let j = 0; j < playerData[i].length; j++) {
                                 if (playerData[i][j].username === socket.user.username) {
                                     if (playerData[i][j].username === match.initiator.username) {
-                                        console.log("initiator changed");
                                         if (nextPlayer) match.initiator = nextPlayer;
                                         else changeInitiator = true
                                     };
@@ -206,12 +200,6 @@ class WebSocket {
                     } catch (err) {
                         console.error('Error in disconnecting:', err);
                     }
-
-                    console.log('Disconnecting from /lobby');
-                });
-
-                socket.on("disconnect", () => {
-                    console.log('Disconnected from /lobby');
                 });
             });
 
@@ -225,10 +213,6 @@ class WebSocket {
 
                 socket.on('returnConnection', (player, id) => {
                     socket.to(id).emit('receivedConnection', player, socket.user.toJSON());
-                });
-
-                socket.on("disconnect", () => {
-                    console.log('Disconnected');
                 });
 
                 socket.on('onmotion', (username, x, y, angle, nitroPower) => {
@@ -296,7 +280,6 @@ class WebSocket {
 
         if (match.gameMode.toString() === 'free-for-all') {
             const highestKill = match.stats.reduce((prev, current) => (prev.kills > current.kills ? prev : current));
-            console.log(highestKill, 'free-for-all');
             highestKill.player.stats.matchesWon++;
             highestKill.player.save();
             match.winner = highestKill.player._id;
@@ -304,7 +287,6 @@ class WebSocket {
         } else {
             const highestScore = match.teams.filter((team)=> team.name !== 'neutral').reduce((prev, current) => (prev.score > current.score ? prev : current));
 
-            console.log(highestScore, 'team-deathmatch');
             highestScore.players.forEach((player) => {
                 player.stats.matchesWon++;
                 player.save();

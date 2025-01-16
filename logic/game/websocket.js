@@ -16,18 +16,14 @@ const socket = io("/", {
 
 socket.on('userDisconnected', (username) => {
     cp.delete(username)
-    console.log('connection disconnected', cp)
 })
 
 socket.on('userConnected', (cplayer, id, user) => {
     cp.set(user.username, new CPlayer(cplayer.x, cplayer.y, cplayer.angle, cplayer.team, ctx, user));
-    console.log(player, 'connected');
     socket.emit('returnConnection', player, id)
-    console.log('connection established', cplayer.username)
 })
 
 socket.on('receivedConnection', (cplayer, user) => {
-    // console.log(cplayer.team, 'received connection');
     cp.set(user.username, new CPlayer(cplayer.x, cplayer.y, cplayer.angle, cplayer.team, ctx, user));
 })
 
@@ -73,7 +69,6 @@ socket.on('destroy', (shooter, shootee, powerUps) => {
 })
 
 socket.on('gameEnd', ()=> {
-    console.log('game end')
     window.location.href = `/game-end/${getGameId()}`;
 })
 

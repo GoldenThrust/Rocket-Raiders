@@ -46,10 +46,8 @@ class gameController {
 
             await matchEndQueue.add(
                 { matchId: match._id.toString() },
-                // { delay: 10 * 60 * 1000 }
-                { delay: 2 * 1000 }
+                { delay: 10 * 60 * 1000 }
             );
-            console.log('queuing')
 
             res.status(201).json({
                 message: "Game initiated successfully",
@@ -184,7 +182,6 @@ class gameController {
                     ));
             }
 
-            console.log(winners)
 
             return res.json({ status: 'OK', winners, gameMode: match.gameMode });
         } catch (e) {

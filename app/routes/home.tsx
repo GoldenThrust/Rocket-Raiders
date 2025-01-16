@@ -53,9 +53,7 @@ export default function Home() {
 
         dispatch(setActiveMatches(response?.data?.matches));
       } catch (error: any) {
-        if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-        } else {
+        if (!axios.isCancel(error)) {
           console.error("Error during auth verification:", error);
         }
       }

@@ -19,9 +19,7 @@ export default function Rocket() {
 
         setRockets(response?.data?.rockets);
       } catch (error: any) {
-        if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-        } else {
+        if (!axios.isCancel(error)) {
           console.error("Error ", error);
         }
       }

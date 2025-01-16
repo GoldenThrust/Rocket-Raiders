@@ -24,7 +24,6 @@ export default function Lobby() {
         const sortedWinners = winners?.length
           ? winners.sort((a: any, b: any) => b?.kills - a?.kills)
           : [];
-          console.log(sortedWinners);
         setMatchData(sortedWinners);
 
         // Navigate after a delay

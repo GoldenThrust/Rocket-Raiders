@@ -22,8 +22,6 @@ export default function upload(folderPath) {
         },
         filename: (req, file, cb) => {
             const ext = path.extname(file.originalname);
-            console.log(ext);
-
             const uniqueSuffix = uuid();
             const filename = ext === '.svg' ? `${uniqueSuffix}${ext}` : `${uniqueSuffix}`;
 

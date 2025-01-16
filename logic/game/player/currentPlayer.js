@@ -65,16 +65,15 @@ export default class User extends Player {
 
     motionSensor(e) {
         if (!this.dead) {
-            let { x = 0, y = 0 } = e.accelerationIncludingGravity || {};
+            let { x = 0, y = 0, z = 0 } = e.accelerationIncludingGravity || {};
 
-            if (!x) {
+            if (!x && !y && !z) {
                 this.controllerType = 'Keyboard';
                 removeEventListener('devicemotion', this.motionSensor);
                 addEventListener('keydown', this.keyDown);
                 addEventListener('keyup', this.keyUp);
 
             }
-
 
             x = Math.round(x) - 10;
             y = Math.round(y);
@@ -139,7 +138,6 @@ export default class User extends Player {
                 socket.emit('onShoot', this.username, this.weaponId, wObj);
                 this.weapons.push(wObj)
                 this.lastFire = t;
-                console.log
             }
         }
 

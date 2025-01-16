@@ -163,7 +163,6 @@ class MailService {
                     console.error('Error sending email:', err);
                     return reject(err);
                 }
-                console.log('Email sent successfully:', result);
                 return resolve(result);
             });
         });

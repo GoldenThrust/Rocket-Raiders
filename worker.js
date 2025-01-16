@@ -13,7 +13,6 @@ export const matchEndQueue = new Queue('matchEndQueue', options);
 
 matchEndQueue.process(async (job) => {
   const { matchId } = job.data;
-  console.log('dispatching game end')
   try {
     const match = await Match.findById(matchId);
     if (match) {

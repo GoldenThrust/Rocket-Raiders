@@ -45,12 +45,8 @@ function setFullScreen() {
         if (
           ["portrait", "portrait-primary"].includes(screen.orientation.type)
         ) {
-          console.log(screen.orientation.type);
           screen.orientation
             .lock("landscape")
-            .then(() => {
-              console.log("Switched to landscape orientation.");
-            })
             .catch((error: Error) => {
               console.error("Orientation lock failed:", error);
             });
@@ -107,16 +103,12 @@ function Wrapper() {
           if (response.status === 200) {
             dispatch(setAuthenticationState(true));
             dispatch(setUserData(response.data?.response));
-            console.log("User is authenticated");
           } else {
             dispatch(setAuthenticationState(false));
-            console.log("User is not authenticatedhb");
           }
         }
       } catch (error: any) {
-        if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-        } else {
+        if (!axios.isCancel(error)) {
           console.error("Error during auth verification:", error);
         }
       }
@@ -125,8 +117,7 @@ function Wrapper() {
     verifyAuth();
 
     return () => {
-      source.cancel("Component unmounted, request canceled.");
-      console.log("Cleanup performed: Axios request canceled.");
+      source.cancel();
     };
   }, []);
 

@@ -1,8 +1,8 @@
 import FormField from "~/components/ui/authentication/Form";
-import type { Route } from "./+types/admin/authentication/login";
 import { useParams } from "react-router";
 import axios from "axios";
 import { useAdminAuth } from "~/hooks/auth";
+import type { Route } from "../../authentication/+types/login";
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
@@ -24,7 +24,9 @@ export default function Login({ actionData }: Route.ComponentProps) {
   useAdminAuth();
   const { "*": param } = useParams();
   if (actionData && actionData.status === "OK") {
-    console.log("User is authenticated");
+    if (param) {
+      window.location.href = "/admin";
+    }
   }
   const formData = [];
 

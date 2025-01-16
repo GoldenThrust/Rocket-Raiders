@@ -213,7 +213,6 @@ function handleClickOrTouch(event) {
             enableSpeciality = false;
             player.speciality.usePowersUp()
         }
-        console.log('Clicked or touched inside the arc!');
     }
 }
 
@@ -229,12 +228,8 @@ function setFullScreen() {
                 if (
                     ["portrait", "portrait-primary"].includes(screen.orientation.type)
                 ) {
-                    console.log(screen.orientation.type);
                     screen.orientation
                         .lock("landscape")
-                        .then(() => {
-                            console.log("Switched to landscape orientation.");
-                        })
                         .catch((error) => {
                             console.error("Orientation lock failed:", error);
                         });
