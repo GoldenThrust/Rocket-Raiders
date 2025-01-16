@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { User, UserState } from "~/types/user";
+import type { UserState } from "~/types/user";
 import { hostUrl } from "~/utils/constants";
 
 const initialState: UserState = {
@@ -16,8 +16,7 @@ export const authSlice = createSlice({
     },
     setUserData: (state, action: PayloadAction<any | null>) => {
       const user = action.payload;
-      user.avatar = user.avatar;
-      state.user = action.payload;
+      state.user = user;
     },
   },
 });

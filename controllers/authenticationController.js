@@ -101,10 +101,10 @@ class AuthenticationController {
             const { username, password } = req.body;
             const user = await User.findOne({
                 $or: [{ username }, { email: username }],
-            });
+            }).populate(['selectedRocket']);
 
             if (!user) {
-                return res.status(401).json({ status: "ERROR", message: "Invalid credentials" });
+                return res.status(401).json({ status: "ERROR", message: "Invalid Username or Email" });
             }
 
             if (!user.active) {
@@ -143,7 +143,7 @@ class AuthenticationController {
 
             return res
                 .status(200)
-                .json({ status: "OK", message: response });
+                .json({ status: "OK", response });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ status: "ERROR", message: 'Internal Server Error' });

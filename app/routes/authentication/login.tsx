@@ -28,9 +28,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
   useAuth();
 
   if (actionData && actionData.status === "OK") {
-    dispatch(setAuthenticationState(true));
-    dispatch(setUserData(actionData.message));
-    window.location.href = '/';
+    window.location.href = "/";
   }
 
   const formData = [

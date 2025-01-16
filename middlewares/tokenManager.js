@@ -4,7 +4,7 @@ import process from "process";
 
 export function createToken(user, expiresIn) {
   const { password, active, ...response } = user.toJSON();
-  console.log(response)
+
   const payload = { ...response, id: response._id.toString() };
   const jwtSecret = process.env.JWT_SECRET;
   const token = jwt.sign(payload, jwtSecret, {
