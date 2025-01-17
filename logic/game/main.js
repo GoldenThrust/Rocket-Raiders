@@ -7,8 +7,6 @@ import axios from "axios";
 import { updateRocketSound } from "./utils/audio.js";
 
 const scaleFactor = 0.8;
-const x = innerWidth * 0.9;
-const y = innerHeight * 0.82;
 const radius = 20;
 let lastUse = 30000;
 let enableSpeciality = false;
@@ -175,6 +173,8 @@ addEventListener('resize', () => {
 })
 
 function drawImageInArc() {
+    const x = innerWidth * 0.9;
+    const y = innerHeight * 0.82;
     ctx.save();
     ctx.fillStyle = 'springgreen';
     ctx.beginPath();
@@ -197,6 +197,8 @@ function drawImageInArc() {
 
 
 function handleClickOrTouch(event) {
+    const x = innerWidth * 0.9;
+    const y = innerHeight * 0.82;
     const rect = canvas.getBoundingClientRect();
     const clientX = event.clientX || event.touches[0].clientX;
     const clientY = event.clientY || event.touches[0].clientY;
