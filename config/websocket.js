@@ -303,6 +303,8 @@ class WebSocket {
 
         if (match.gameMode.toString() === 'free-for-all') {
             const highestKill = match.stats.reduce((prev, current) => (prev.kills > current.kills ? prev : current));
+
+            console.log('Winning team', highestKill.player);
             highestKill.player.stats.matchesWon++;
             highestKill.player.save();
             match.winner = highestKill.player._id;
@@ -314,6 +316,7 @@ class WebSocket {
                 player.stats.matchesWon++;
                 player.save();
             })
+            console.log('Winning team', highestScore.name);
 
             match.winningTeam = highestScore.name;
             match.save();

@@ -9,6 +9,7 @@ import { hostUrl } from "~/utils/constants";
 export default function Lobby() {
   const { gameId } = useParams();
   const [match, setMatchData] = useState<any>({});
+  const [mode, setGameMode] = useState<any>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,11 +21,18 @@ export default function Lobby() {
           cancelToken: source.token,
         });
 
+        
         const winners = response.data?.winners;
-        const sortedWinners = winners?.length
-          ? winners.sort((a: any, b: any) => b?.kills - a?.kills)
-          : [];
-        setMatchData(sortedWinners);
+        const gameMode = response.data?.gameMode;
+        setGameMode(gameMode)
+        if (gameMode !== 'free-for-all') {
+          const sortedWinners = winners?.length
+            ? winners.sort((a: any, b: any) => b?.kills - a?.kills)
+            : [];
+          setMatchData(sortedWinners);
+        } else {
+          setMatchData([winners])
+        }
 
         // Navigate after a delay
         // setTimeout(() => {
@@ -58,7 +66,7 @@ export default function Lobby() {
       <main className="flex" style={{ height: "90%" }}>
         {match.length > 0 ? (
           <div className="w-full px-4 py-8">
-            <h2 className="text-2xl font-bold mb-6">Winners</h2>
+            <h2 className="text-2xl font-bold mb-6">Winner{mode === 'free-for-all' ? '' : 's'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {match.map((winner: any) => (
                 <div
