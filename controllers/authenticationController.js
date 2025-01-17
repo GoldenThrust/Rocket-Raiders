@@ -187,7 +187,7 @@ class AuthenticationController {
             let avatar = req.file.path;
 
             if (avatar) {
-                if (fs.existsSync(user.avatar) && user.avatar !== 'assets/imgs/uploads/default-avatar.svg')
+                if (fs.existsSync(user.avatar) && user.avatar !== 'assets/imgs/default-avatar.svg')
                     fs.unlinkSync(user.avatar);
                 user.avatar = avatar;
             }

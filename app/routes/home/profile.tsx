@@ -32,9 +32,9 @@ export default function Profile() {
       formData.append("avatar", file);
 
       axios
-        .put(`${hostUrl}/auth/update-profile`, formData)
+        .put(`/auth/update-profile`, formData)
         .then((res) => {
-          window.location.reload();
+          // window.location.href = '/';
         })
         .catch((error) => {
           console.log(error);
