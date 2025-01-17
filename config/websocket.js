@@ -210,7 +210,7 @@ class WebSocket {
                             }
                         }
 
-                        if (--match.connectPlayer <= 0 || !nextPlayer || !changeInitiator) {
+                        if (--match.connectPlayer <= 0 || !nextPlayer) {
                             await redis.hdel('matches', gameId);
                             socket.to(gameId).emit('matchDeleted');
                             this.ios.home.emit('matchDeleted', match.id)
