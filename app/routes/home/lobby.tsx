@@ -32,7 +32,6 @@ export default function Lobby() {
       },
     });
 
-
     const socket = socketRef.current;
 
     socket.on("setGame", (match) => {
@@ -56,6 +55,9 @@ export default function Lobby() {
 
     socket.on("startGame", (matchID) => {
       window.location.href = `${hostUrl}/game/?gameid=${matchID}`;
+    });
+    socket.on("endGame", () => {
+      window.location.href = `/`;
     });
 
     socket.on("gameStartFailed", (errorMessage) => {
@@ -84,8 +86,8 @@ export default function Lobby() {
         }
 
         setMyLoc(loc);
+
         socketRef.current?.emit("joinLobby");
-        socketRef.current?.emit("setGame", loc, loc);
 
         setPlayers(playerData);
         const map = await getMaps();
@@ -117,13 +119,15 @@ export default function Lobby() {
     };
 
     const findAvailableSlot = (playerData: any) => {
+      let endGame = false;
       for (let i = 0; i < playerData.length; i++) {
         for (let j = 0; j < playerData[i].length; j++) {
+          if (playerData[i][j]?.username === user?.username) {
+              handleDisconnection();
+          }
           if (!playerData[i][j] || Object.keys(playerData[i][j]).length === 0) {
             playerData[i][j] = user;
             return `${i}:${j}`;
-          } else if (playerData[i][j]?.username === user?.username) {
-            return null;
           }
         }
       }
@@ -220,7 +224,7 @@ export default function Lobby() {
             {players.map((teams: any, i) => (
               <React.Fragment key={i}>
                 <div
-                  key={`08-${i}`}
+                  key={`00-0${i}`}
                   className={`flex flex-wrap ${
                     i == 0 ? "place-self-start" : "place-self-end"
                   } gap-2`}
@@ -254,6 +258,7 @@ export default function Lobby() {
                   {i === 0 && players.length === 2 && (
                     <span
                       className="text-2xl font-bold font-serif text-red-200"
+                      key={"VS"}
                       style={{
                         textShadow: "1px 1px 1px black",
                       }}
@@ -269,26 +274,22 @@ export default function Lobby() {
             className={`flex gap-1 w-4/6 h-25 flex-none overflow-x-auto m-auto `}
           >
             {maps.map((map, key: any) => (
-              <>
-                <div
-                  style={{
-                    background: `black`,
-                  }}
-                  key={map?.name}
-                  id={key}
-                  className={`relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end`}
-                  onClick={selectMap(map)}
-                >
-                  <span className="z-1 absolute font-extrabold">
-                    {map?.name}
-                  </span>
-                  <img
-                    src={`${hostUrl}/${map?.background}`}
-                    alt=""
-                    className={`object-cover`}
-                  />
-                </div>
-              </>
+              <div
+                style={{
+                  background: `black`,
+                }}
+                key={map?.name || `map-${key}`}
+                id={key}
+                className={`relative w-32 aspect-video flex-none text-white overflow-hidden flex justify-center items-end`}
+                onClick={selectMap(map)}
+              >
+                <span className="z-1 absolute font-extrabold">{map?.name}</span>
+                <img
+                  src={`${hostUrl}/${map?.background}`}
+                  alt=""
+                  className={`object-cover`}
+                />
+              </div>
             ))}
           </div>
         </div>

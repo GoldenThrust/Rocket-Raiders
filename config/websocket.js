@@ -4,6 +4,21 @@ import { redis } from "./db.js";
 import { balanceTeams } from "../utils/func.js";
 import { matchEndQueue } from "../worker.js";
 
+
+
+const findAvailableSlot = (playerData, user) => {
+    for (let i = 0; i < playerData.length; i++) {
+        for (let j = 0; j < playerData[i].length; j++) {
+            if (playerData[i][j]?.username === user.username) {
+                throw new Error("No available slot");
+            } else if (!playerData[i][j] || Object.keys(playerData[i][j]).length === 0) {
+                playerData[i][j] = user.toJSON();
+                return;
+            }
+        }
+    }
+};
+
 // TODO: make sure only initiator are allow to make some changes in backend.
 const duration = 10;
 class WebSocket {
@@ -30,12 +45,19 @@ class WebSocket {
                 const gameId = socket.handshake.query.gameId;
                 socket.join(gameId);
 
+                socket.on('endGame', async () => {
+                    await redis.hdel('matches', gameId);
+                    this.ios.lobby('endGame');
+                });
+
                 socket.on('joinLobby', async () => {
                     try {
                         const match = JSON.parse(await redis.hget('matches', gameId));
                         match.connectPlayer++;
+                        findAvailableSlot(match.players, socket.user);
                         await redis.hset('matches', gameId, JSON.stringify(match));
                         this.ios.home.emit('updateMatches', match)
+                        this.ios.lobby.to(gameId).emit('setGame', match)
                     } catch (error) {
                         console.error(error);
                     }
@@ -68,6 +90,7 @@ class WebSocket {
                                 }
                             });
                         });
+
 
 
                         if (teams.neutral.players.length > 1) {
@@ -187,7 +210,7 @@ class WebSocket {
                             }
                         }
 
-                        if (--match.connectPlayer <= 0) {
+                        if (--match.connectPlayer <= 0 || !nextPlayer || !changeInitiator) {
                             await redis.hdel('matches', gameId);
                             socket.to(gameId).emit('matchDeleted');
                             this.ios.home.emit('matchDeleted', match.id)
@@ -227,7 +250,7 @@ class WebSocket {
                     socket.to(gameId).emit('weaponHit', shooter, shootee, gunIndex);
                 });
 
-                socket.on('destroy', async (shooter, shootee, powerUps=false) => {
+                socket.on('destroy', async (shooter, shootee, powerUps = false) => {
                     try {
                         const match = await Match.findById(gameId).populate('stats.player');
 
@@ -285,7 +308,7 @@ class WebSocket {
             match.winner = highestKill.player._id;
             match.save();
         } else {
-            const highestScore = match.teams.filter((team)=> team.name !== 'neutral').reduce((prev, current) => (prev.score > current.score ? prev : current));
+            const highestScore = match.teams.filter((team) => team.name !== 'neutral').reduce((prev, current) => (prev.score > current.score ? prev : current));
 
             highestScore.players.forEach((player) => {
                 player.stats.matchesWon++;
