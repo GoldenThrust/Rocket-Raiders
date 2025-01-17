@@ -1,10 +1,8 @@
 import AspectRatio from "./aspectRatio.js";
-import { getRandomCharacters } from "./function.js";
 
 export const maxDistance = { w: 5000, h: 5000 * (9 / 16) };
 
 export const canvas = document.createElement('canvas');
-export const mapCanvas = document.createElement('canvas');
 
 document.body.appendChild(canvas);
 

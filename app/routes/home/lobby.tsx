@@ -2,12 +2,11 @@ import { ChevronsLeft } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router";
 import Header from "~/components/ui/home/header";
 import React, { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
-import type { Socket } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 import { hostUrl } from "~/utils/constants";
 import type { CancelTokenSource } from "axios";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { RootState } from "~/store";
 
 export default function Lobby() {

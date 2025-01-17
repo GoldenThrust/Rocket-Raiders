@@ -30,29 +30,29 @@ rocketNoise.connect(gainNode);
 rocketNoise.start();
 
 export function updateRocketSound(objectX, objectY, myX, myY, speed) {
-    const deltaX = objectX - myX;
-    const deltaY = objectY - myY;
-  
-    const normalizedX = (deltaX / window.innerWidth) * 2 - 1;
-    const normalizedY = (deltaY / window.innerHeight) * 2 - 1;
-  
-    const clampedPan = Math.max(-1, Math.min(normalizedX, 1));
-  
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    const normalizedDistance = 1 / (1 + distance / 1000);
-  
-    gainNode.gain.setValueAtTime(normalizedDistance, audioContext.currentTime);
-    pannerNode.pan.setValueAtTime(clampedPan, audioContext.currentTime);
-  
-    const pitch = 1 + speed / 1000;
-    rocketNoise.playbackRate.setValueAtTime(pitch, audioContext.currentTime);
-  }
-  
+  const deltaX = objectX - myX;
+  const deltaY = objectY - myY;
+
+  const normalizedX = (deltaX / window.innerWidth) * 2 - 1;
+  const normalizedY = (deltaY / window.innerHeight) * 2 - 1;
+
+  const clampedPan = Math.max(-1, Math.min(normalizedX, 1));
+
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  const normalizedDistance = 1 / (1 + distance / 1000);
+
+  gainNode.gain.setValueAtTime(normalizedDistance, audioContext.currentTime);
+  pannerNode.pan.setValueAtTime(clampedPan, audioContext.currentTime);
+
+  const pitch = 1 + speed / 1000;
+  rocketNoise.playbackRate.setValueAtTime(pitch, audioContext.currentTime);
+}
+
 
 export function playExplosionSound(objectX, objectY, myX, myY) {
   const deltaX = objectX - myX;
   const deltaY = objectY - myY;
-  
+
   const normalizedX = (deltaX / window.innerWidth) * 2 - 1;
   const normalizedY = (deltaY / window.innerHeight) * 2 - 1;
 

@@ -71,6 +71,7 @@ axios.get(`/api/game/get-game/${gameid}`).then((response) => {
 function main(t) {
     // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     canvas.width = innerWidth;
+    canvas.height = innerHeight;
     const gameData = JSON.parse(sessionStorage.getItem(`gameData-${gameid}`));
     const kills = sessionStorage.getItem(`kill-${gameid}`);
 
@@ -160,7 +161,6 @@ function main(t) {
     }
 
 
-
     requestAnimationFrame(main);
 }
 
@@ -244,3 +244,11 @@ function setFullScreen() {
 document.onclick = () => {
     setFullScreen();
 }
+
+window.addEventListener('resize', () => {
+    mapAR.reScale();
+});
+
+window.addEventListener('orientationchange', () => {
+    mapAR.reScale();
+})

@@ -1,4 +1,4 @@
-import { Coins, HandCoins, Newspaper, Settings } from "lucide-react";
+import { HandCoins, Newspaper, Settings } from "lucide-react";
 import type React from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router";

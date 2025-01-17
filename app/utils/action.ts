@@ -1,8 +1,5 @@
 import axios from "axios";
-import { io, Socket } from "socket.io-client";
-import { hostUrl } from "./constants";
 
-let socket: Socket | null;
 export async function verifyAdmin() {
   try {
     const response = await axios.get("/auth/admin/verify");
@@ -48,12 +45,3 @@ export function convertDashToCamelCase(input: string) {
     .toLowerCase()
     .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
-
-export const initializeSocket = () => {
-  if (!socket) {
-    socket = io(`${hostUrl}/home`, {
-      withCredentials: true,
-    });
-  }
-  return socket;
-};
