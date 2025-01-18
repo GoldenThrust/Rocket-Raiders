@@ -7,8 +7,8 @@ const RocketSchema = new Schema({
   fireRate: { type: Number, default: 500 },
   speciality: { type: String, default: 'Sonic Dash' },
   range: { type: Number, default: 5000 },
-  rocket: { type: String, default: "assets/imgs/player.svg" },
-  flame: { type: String, default: "assets/imgs/flame.svg" },
+  rocket: { type: String, default: "assets/imgs/rockets/player.svg" },
+  flame: { type: String, default: "assets/imgs/rockets/flame.svg" },
   price: { type: Number, default: 20},
   // weaponSlots: { type: Number, default: 2 },
 }, { timestamps: true });

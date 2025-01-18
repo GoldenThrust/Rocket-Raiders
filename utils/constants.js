@@ -14,5 +14,5 @@ export const mongoDBURI = DEV ? 'mongodb://127.0.0.1:27017/rocketraider' : proce
 
 export const hostUrl = process.env.HOST_URL;
 
-export const upload = multer({ dest: "public/imgs/" });
+export const upload = multer({ dest: "assets/imgs/" });
 export const COOKIE_NAME = "auth_token";

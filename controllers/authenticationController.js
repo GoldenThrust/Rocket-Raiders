@@ -12,6 +12,94 @@ import Map from "../models/map.js";
 import Rocket from "../models/rocket.js";
 
 const domain = (new URL(hostUrl)).hostname
+const rocketUrl = "assets/imgs/rockets";
+const mapUrl = "assets/imgs/maps";
+const rockets = [
+    {
+        name: 'Swift',
+        speed: 10,
+        durability: 1,
+        fireRate: 250,
+        range: 6000,
+        speciality: 'Sonic Dash',
+        price: 15,
+        rocket: `${rocketUrl}/swift.svg`,
+        flame: `${rocketUrl}/swift-flame.svg`,
+    },
+    {
+        name: 'Absorb',
+        speed: 8,
+        durability: 1,
+        fireRate: 300,
+        range: 5000,
+        speciality: 'Black Hole',
+        price: 20,
+        rocket: `${rocketUrl}/absorb.svg`,
+        flame: `${rocketUrl}/playerburst.svg`,
+    },
+    {
+        name: 'Dive',
+        speed: 9,
+        durability: 1,
+        fireRate: 280,
+        range: 5500,
+        speciality: 'Sonic Dash',
+        price: 18,
+        rocket: `${rocketUrl}/dive.svg`,
+        flame: `${rocketUrl}/playerburst.svg`,
+    },
+    {
+        name: 'Storm',
+        speed: 12,
+        durability: 1,
+        fireRate: 220,
+        range: 7000,
+        speciality: 'Track Gun',
+        price: 25,
+        rocket: `${rocketUrl}/storm.svg`,
+        flame: `${rocketUrl}/playerburst.svg`,
+    },
+    {
+        name: 'Rocket',
+        speed: 5,
+        durability: 1,
+        fireRate: 300,
+        range: 5000,
+        speciality: 'Sonic Dash',
+        price: 10,
+        rocket: `${rocketUrl}/player.svg`,
+        flame: `${rocketUrl}/playerburst.svg`,
+    },
+];
+
+
+const maps = [
+    {
+        name: 'Abyss',
+        description: 'A dark and foreboding chasm filled with unknown terrors and secrets.',
+        background: `${mapUrl}/abyss.jpg`
+    },
+    {
+        name: 'Lure',
+        description: 'A deceptive landscape that entices with beauty but hides many traps.',
+        background: `${mapUrl}/lure.jpg`
+    },
+    {
+        name: 'Scare',
+        description: 'A haunting terrain with eerie sounds and ghostly apparitions at every turn.',
+        background: `${mapUrl}/scare.jpg`
+    },
+    {
+        name: 'Mystic',
+        description: 'A mysterious map filled with ancient ruins and mystical energies.',
+        background: `${mapUrl}/mystic.jpg`
+    },
+    {
+        name: 'Earth',
+        description: 'A fertile land rich in natural beauty and abundant wildlife, but not without its dangers.',
+        background: `${mapUrl}/earth.jpg`
+    }
+];
 
 class AuthenticationController {
     async verify(req, res) {
@@ -49,17 +137,27 @@ class AuthenticationController {
 
 
             const rocket = await Rocket.findOne({ name: 'Rocket' });
-            const map = await Map.findOne({ name: 'Mystic'})
+            const map = await Map.findOne({ name: 'Mystic' })
 
 
             if (!rocket) {
-                const rocket = new Rocket({ name: 'Rocket' });
-                await rocket.save();
+                await Rocket.insertMany(rockets, { ordered: false })
+                    .then(docs => {
+                        console.log('Rocket inserted:', docs);
+                    })
+                    .catch(err => {
+                        console.error('InsertMany error:', err);
+                    });;
             }
 
             if (!map) {
-                const map = new Map({ name: 'Mystic' });
-                await map.save();
+                await Map.insertMany(maps, { ordered: false })
+                    .then(docs => {
+                        console.log('Map inserted:', docs);
+                    })
+                    .catch(err => {
+                        console.error('InsertMany error:', err);
+                    });;
             }
 
 

@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "~/store";
-import freeforallMap from "~/assets/map/freeforall.jpg";
-import teamdeathmatchMap from "~/assets/map/teamdeathmatch.jpg";
+import freeforallMap from "~/assets/maps/freeforall.jpg";
+import teamdeathmatchMap from "~/assets/maps/teamdeathmatch.jpg";
 import {
   convertCamelToTitleCase,
   convertDashToCamelCase,
