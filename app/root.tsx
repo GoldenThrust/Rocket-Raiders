@@ -45,11 +45,9 @@ function setFullScreen() {
         if (
           ["portrait", "portrait-primary"].includes(screen.orientation.type)
         ) {
-          screen.orientation
-            .lock("landscape")
-            .catch((error: Error) => {
-              console.error("Orientation lock failed:", error);
-            });
+          screen.orientation.lock("landscape").catch((error: Error) => {
+            console.error("Orientation lock failed:", error);
+          });
         }
       } else {
         alert("Screen Orientation API is not supported on this browser.");
@@ -60,7 +58,7 @@ function setFullScreen() {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-     addEventListener("click", setFullScreen);
+    addEventListener("click", setFullScreen);
     return () => removeEventListener("click", setFullScreen);
   }, []);
 
