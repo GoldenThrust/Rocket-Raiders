@@ -304,22 +304,24 @@ class WebSocket {
         if (match.gameMode.toString() === 'free-for-all') {
             const highestKill = match.stats.reduce((prev, current) => (prev.kills > current.kills ? prev : current));
 
-            console.log('Winning team', highestKill.player);
-            highestKill.player.stats.matchesWon++;
-            highestKill.player.save();
-            match.winner = highestKill.player._id;
-            match.save();
+            if (highestKill.kills > 0) {
+                highestKill.player.stats.matchesWon++;
+                highestKill.player.save();
+                match.winner = highestKill.player._id;
+                match.save();
+            }
         } else {
             const highestScore = match.teams.filter((team) => team.name !== 'neutral').reduce((prev, current) => (prev.score > current.score ? prev : current));
+            if (highestScore.score > 0) {
+                highestScore.players.forEach((player) => {
+                    player.stats.matchesWon++;
+                    player.save();
+                })
 
-            highestScore.players.forEach((player) => {
-                player.stats.matchesWon++;
-                player.save();
-            })
-            console.log('Winning team', highestScore.name);
+                match.winningTeam = highestScore.name;
+                match.save();
 
-            match.winningTeam = highestScore.name;
-            match.save();
+            }
         }
 
         this.ios.io.to(gameId).emit('gameEnd');

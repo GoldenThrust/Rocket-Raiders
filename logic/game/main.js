@@ -4,13 +4,13 @@ import { distanceBetween, drawLive, drawMiniMapPosition, getGameId, getRandomInt
 import { ctx, canvas, mapAR, maxDistance } from "./utils/constant.js"
 import socket from "./websocket.js";
 import axios from "axios";
-import { updateRocketSound } from "./utils/audio.js";
+import { initAudioContext, playPowerUp, playRocketMove, updateListenerPosition } from "./utils/audio.js";
 
 const scaleFactor = 0.8;
 const radius = 20;
 let lastUse = 30000;
 let enableSpeciality = false;
-
+initAudioContext();
 
 const gameid = getGameId();
 
@@ -59,7 +59,9 @@ axios.get(`/api/game/get-game/${gameid}`).then((response) => {
     sessionStorage.setItem(`gameData-${gameid}`, JSON.stringify(response.data?.match));
     const image = new Image();
     image.src = `/${response.data.match.map.background}`;
-    map = image;
+    image.onload = () => {
+        map = image;
+    }
     socket.emit("connected", player);
 }).catch((error) => {
     console.error(error)
@@ -92,6 +94,7 @@ function main(t) {
         ctx.scale(scaleFactor, scaleFactor);
         ctx.translate(-canvas.width / 2, -canvas.height / 2);
         ctx.translate(-player.x + canvas.width / 2, -player.y + canvas.height / 2);
+        updateListenerPosition(player.x, player.y);
 
 
         if (map) {
@@ -107,24 +110,20 @@ function main(t) {
             cplayer.draw(t);
         })
 
-
         ctx.restore();
-
-
 
         ctx.strokeStyle = 'grey';
         ctx.fillStyle = '#111';
         ctx.strokeRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         ctx.fillRect(mapAR.x, mapAR.y, mapAR.width, mapAR.height)
         cp.forEach((cplayer) => {
-            updateRocketSound(cplayer.x, cplayer.y, player.x, player.y, cplayer.speed);
+            playRocketMove(cplayer.audiopanner);
             drawMiniMapPosition(cplayer, cplayer.team === 'neutral' || cplayer.team !== player.team ? 'red' : 'blue');
         })
         drawMiniMapPosition(player);
+        console.log
         player.update(t);
         // drawLive(player)
-
-
 
 
         if (gameData) {
@@ -185,7 +184,6 @@ function drawImageInArc() {
     ctx.closePath();
 
     ctx.clip();
-
     ctx.drawImage(imgP, x - radius, y - radius, radius * 2, radius * 2);
 
     ctx.restore();
@@ -212,6 +210,7 @@ function handleClickOrTouch(event) {
 
     if (ctx.isPointInPath(canvasX, canvasY)) {
         if (enableSpeciality) {
+            playPowerUp(player.audiopanner);
             enableSpeciality = false;
             player.speciality.usePowersUp()
         }

@@ -1,4 +1,4 @@
-import { playExplosionSound } from "./audio.js";
+import { playExplosion } from "./audio.js";
 import { ctx, mapAR, maxDistance } from "./constant.js";
 
 
@@ -185,7 +185,6 @@ export function convertTitleToCamelCase(input) {
 
 
 export function killPlayer(cplayer, player, socket, powerUps) {
-  playExplosionSound(cplayer.x, cplayer.y, player.x, player.y);
   cplayer.dead = true;
   cplayer.weaponHit = true;
   const kills = sessionStorage.getItem(`kill-${getGameId()}`) || 0;
@@ -193,5 +192,6 @@ export function killPlayer(cplayer, player, socket, powerUps) {
   if (powerUps) {
     cplayer.live = 0;
   }
+  playExplosion(cplayer.audiopanner)
   socket.emit('destroy', player, cplayer, true);
 }

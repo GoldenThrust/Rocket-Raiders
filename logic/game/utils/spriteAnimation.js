@@ -39,8 +39,8 @@ export default class SpriteAnimation {
 
         const column = this.currentFrame % this.numberOfColumns;
         const row = Math.floor(this.currentFrame / this.numberOfColumns);
-
-        drawSpriteFrame(this.spritesheet, column, row, this.x, this.y, this.cutWidth, this.cutHeight, this.scaleWidth, this.scaleHeight);
+        if (this.spritesheet)
+            drawSpriteFrame(this.spritesheet, column, row, this.x, this.y, this.cutWidth, this.cutHeight, this.scaleWidth, this.scaleHeight);
     }
 
     slide(t, x, y) {
@@ -54,8 +54,8 @@ export default class SpriteAnimation {
 
         const column = this.currentFrame % this.numberOfColumns;
         const row = Math.floor(this.currentFrame / this.numberOfColumns);
-
-        drawSpriteFrame(this.spritesheet, column, row, this.x, this.y, this.cutWidth, this.cutHeight, this.scaleWidth, this.scaleHeight);
+        if (this.spritesheet)
+            drawSpriteFrame(this.spritesheet, column, row, this.x, this.y, this.cutWidth, this.cutHeight, this.scaleWidth, this.scaleHeight);
     }
 
     update(x, y) {

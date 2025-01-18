@@ -3,21 +3,21 @@ import { convertTitleToCamelCase, getGameId, getRandomInt } from "../utils/funct
 import SpriteAnimation from "../utils/spriteAnimation.js";
 import axios from "axios";
 import Speciality from "./weapons/Speciality.js";
+import { createSpatialAudio } from "../utils/audio.js";
 
 
 export default class Player {
     constructor(x, y, angle, ctx, username = null, rocket = null, burst = null, speed = null, range = null, durability = null, fireRate = null, speciality) {
         const gameData = JSON.parse(sessionStorage.getItem(`gameData-${getGameId()}`));
+        this.nitro = new Image();
+        this.player = new Image();
         if (!username || !rocket || !burst) {
             axios.get('/api/auth/verify').then((response) => {
                 const { username, selectedRocket } = response.data.response;
-                let rocketImg = new Image();
-                rocketImg.src = `/${selectedRocket.rocket}`;
-                let burstImg = new Image();
-                burstImg.src = `/${selectedRocket.flame}`;
                 this.username = username;
-                this.player = rocketImg;
-                this.nitro = burstImg;
+                this.nitro.src = `/${selectedRocket.flame}`;
+
+                this.player.src = `/${selectedRocket.rocket}`;
 
                 this.maxSpeed = selectedRocket.speed;
                 this.range = selectedRocket.range;
@@ -29,13 +29,9 @@ export default class Player {
                 console.log(error);
             });
         } else {
-            let rocketImg = new Image();
-            rocketImg.src = `/${rocket}`;
-            let burstImg = new Image();
-            burstImg.src = `/${burst}`;
             this.username = username;
-            this.player = rocketImg;
-            this.nitro = burstImg;
+            this.player.src = `/${rocket}`
+            this.nitro.src = `/${burst}`
 
             this.maxSpeed = speed;
             this.range = range;
@@ -46,6 +42,8 @@ export default class Player {
         }
 
 
+        
+        
         this.x = x;
         this.y = y;
         this.w = 35;
@@ -63,12 +61,10 @@ export default class Player {
         this.weapons = []
         this.lastUpdate = 0;
         this.explosion = null;
-        const eximg = new Image();
-        eximg.src = '/assets/imgs/explosion.png';
-        this.explosionSprite = eximg;
+        this.explosionSprite = new Image();
+        this.explosionSprite.src = '/assets/imgs/explosion.png';
         this.team = gameData?.name;
-
-        
+        this.audiopanner = createSpatialAudio(this.x, this.y, this.angle);
     }
 
     draw(t) {
@@ -165,6 +161,9 @@ export default class Player {
     }
 
     updateState() {
+        this.audiopanner.positionX.value = this.x || window.innerWidth / 2;
+        this.audiopanner.positionY.value = this.y || window.innerHeight / 2;
+
         if (!this.live && !this.explosion) {
             this.explosion = new SpriteAnimation(this.explosionSprite, -this.w * 2, -this.h * 2, 80, 80, 2, 2, 2, 3, 12, 1);
             this.live = this.durability || 1;

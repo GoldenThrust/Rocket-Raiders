@@ -14,7 +14,7 @@ export default {
         path: path.resolve(__dirname, 'logic/'),
     },
     mode: 'production',
-    watch: false,
+    watch: true,
     module: {
         rules: [
             {
