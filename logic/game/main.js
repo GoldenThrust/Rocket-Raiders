@@ -4,13 +4,13 @@ import { distanceBetween, drawLive, drawMiniMapPosition, getGameId, getRandomInt
 import { ctx, canvas, mapAR, maxDistance } from "./utils/constant.js"
 import socket from "./websocket.js";
 import axios from "axios";
-import { initAudioContext, playPowerUp, playRocketMove, updateListenerPosition } from "./utils/audio.js";
+import { initaudioCtx, playPowerUp, playRocketMove, updateListenerPosition } from "./utils/audio.js";
 
 const scaleFactor = 0.8;
 const radius = 20;
 let lastUse = 30000;
 let enableSpeciality = false;
-initAudioContext();
+initaudioCtx();
 
 const gameid = getGameId();
 
@@ -209,8 +209,8 @@ function handleClickOrTouch(event) {
     ctx.closePath();
 
     if (ctx.isPointInPath(canvasX, canvasY)) {
+        playPowerUp(player.speciality.type, player.audiopanner);
         if (enableSpeciality) {
-            playPowerUp(player.audiopanner);
             enableSpeciality = false;
             player.speciality.usePowersUp()
         }

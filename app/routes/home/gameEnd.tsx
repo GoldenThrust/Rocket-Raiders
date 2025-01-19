@@ -41,7 +41,7 @@ export default function Lobby() {
       } catch (error) {
         if (!axios.isCancel(error)) {
           console.error("Failed to fetch match data:", error);
-          navigate("/");
+          // navigate("/");
         }
       }
     };

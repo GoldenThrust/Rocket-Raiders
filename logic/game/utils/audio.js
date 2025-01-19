@@ -2,21 +2,21 @@ import { player } from "../player/currentPlayer.js";
 
 export let audioCtx;
 
-export function initAudioContext() {
+export function initaudioCtx() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = new (window.AudioContext || window.webkitaudioContext)();
   }
 }
 
 
 
-const panningModel = "HRTF";
-const innerCone = 60;
-const outerCone = 90;
-const outerGain = 0.1;
+// const panningModel = "HRTF";
+// const innerCone = 60;
+// const outerCone = 90;
+// const outerGain = 0.01;
 const distanceModel = "linear";
 const maxDistance = 2000;
-const refDistance = 1;
+// const refDistance = 1;
 const rollOff = 1;
 
 const positionX = player?.x || window.innerWidth / 2;
@@ -45,14 +45,14 @@ export function updateListenerPosition(x, y) {
 }
 
 export function createSpatialAudio(x, y, angle) {
-  initAudioContext();
+  initaudioCtx();
   if (!audioCtx) {
-    console.error('AudioContext is not initialized');
+    console.error('audioCtx is not initialized');
     return null;
   }
 
   const panner = new PannerNode(audioCtx, {
-    panningModel,
+    // panningModel,
     distanceModel,
     positionX: x,
     positionY: y,
@@ -60,12 +60,12 @@ export function createSpatialAudio(x, y, angle) {
     orientationX: Math.cos(angle),
     orientationY: Math.sin(angle),
     orientationZ: 0,
-    refDistance,
+    // refDistance,
     maxDistance,
     rolloffFactor: rollOff,
-    coneInnerAngle: innerCone,
-    coneOuterAngle: outerCone,
-    coneOuterGain: outerGain,
+    // coneInnerAngle: innerCone,
+    // coneOuterAngle: outerCone,
+    // coneOuterGain: outerGain,
   });
 
   return panner;
@@ -79,58 +79,46 @@ export function changePannerPosition(x, y, angle, panner) {
   panner.orientationY.value = Math.sin(angle);
 }
 
-export async function playExplosion(panner) {
-  const oscillator = audioCtx.createOscillator();
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.5);
+async function playSound(path, panner, gain = null) {
+  const source = audioCtx.createBufferSource();
+  if (gain) {
+    source.connect(panner).connect(gain).connect(audioCtx.destination);
+  } else {
+    source.connect(panner).connect(audioCtx.destination);
+  }
 
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+  const response = await fetch(path);
+  const audioData = await response.arrayBuffer();
+  const buffer = await audioCtx.decodeAudioData(audioData);
 
-  oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.5);
+  source.buffer = buffer;
+
+  source.start();
 }
 
-export function playPowerUp(panner) {
-  const oscillator = audioCtx.createOscillator();
-  oscillator.type = 'triangle';
-  oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
-
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-
-  oscillator.connect(panner).connect(gainNode).connect(audioCtx.destination);
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.5);
+export async function playPowerUp(name, panner) {
+  await playSound(`/assets/audio/${name}.mp3`, panner);
 }
 
 export function playRocketMove(panner) {
   const oscillator = audioCtx.createOscillator();
   oscillator.type = 'sawtooth';
-  oscillator.frequency.setValueAtTime(50, audioCtx.currentTime);
-  oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 2);
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+  oscillator.frequency.setValueAtTime(30, audioCtx.currentTime);
+  oscillator.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 2);
 
-  oscillator.connect(panner).connect(audioCtx.destination);
+  oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
   oscillator.start();
   oscillator.stop(audioCtx.currentTime + 1);
 }
 
-export function playGunshot(panner) {
-  const oscillator = audioCtx.createOscillator();
-  oscillator.type = 'square';
-  oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
 
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+export async function playGunshot(panner) {
+  await playSound('/assets/audio/gunshot.mp3', panner);
+}
 
-  oscillator.connect(gainNode).connect(panner).connect(audioCtx.destination);
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.1);
+export async function playExplosion(panner) {
+  await playSound('/assets/audio/explosion.mp3', panner);
 }
